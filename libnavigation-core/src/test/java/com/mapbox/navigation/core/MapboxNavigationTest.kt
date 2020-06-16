@@ -20,8 +20,8 @@ import com.mapbox.navigation.base.internal.route.RouteUrl
 import com.mapbox.navigation.base.options.NavigationOptions
 import com.mapbox.navigation.base.options.OnboardRouterOptions
 import com.mapbox.navigation.base.route.Router
+import com.mapbox.navigation.base.routerefresh.RouteRefreshAdapter
 import com.mapbox.navigation.base.trip.model.RouteProgress
-import com.mapbox.navigation.core.directions.session.AdjustedRouteOptionsProvider
 import com.mapbox.navigation.core.directions.session.DirectionsSession
 import com.mapbox.navigation.core.directions.session.RoutesObserver
 import com.mapbox.navigation.core.directions.session.RoutesRequestCallback
@@ -75,6 +75,7 @@ class MapboxNavigationTest {
     private val routeProgress: RouteProgress = mockk(relaxed = true)
     private val navigationSession: NavigationSession = mockk(relaxUnitFun = true)
     private val logger: Logger = mockk(relaxUnitFun = true)
+    private val routeRefreshAdapter: RouteRefreshAdapter = mockk()
 
     private val navigationOptions = NavigationOptions
         .Builder()
@@ -83,6 +84,7 @@ class MapboxNavigationTest {
         .navigatorPredictionMillis(1500L)
         .onboardRouterOptions(onBoardRouterOptions)
         .timeFormatType(NONE_SPECIFIED)
+        .rerouteAdapter(routeRefreshAdapter)
         .build()
 
     private lateinit var mapboxNavigation: MapboxNavigation
@@ -138,6 +140,8 @@ class MapboxNavigationTest {
         mockTripSession()
         mockDirectionSession()
         mockNavigationSession()
+
+        every { routeRefreshAdapter.newRouteOptions(any(), any(), any()) } returns routeOptions
 
         every { navigator.create(any(), logger) } returns navigator
 
@@ -299,7 +303,6 @@ class MapboxNavigationTest {
     fun enhanced_location_used_for_reroute() {
         val observers = mutableListOf<OffRouteObserver>()
         verify(exactly = 2) { tripSession.registerOffRouteObserver(capture(observers)) }
-        mockkObject(AdjustedRouteOptionsProvider)
         val mockedLocation = Location("mock")
         every { tripSession.getEnhancedLocation() } returns mockedLocation
 
@@ -307,59 +310,7 @@ class MapboxNavigationTest {
             it.onOffRouteStateChanged(true)
         }
 
-        verify(exactly = 1) { AdjustedRouteOptionsProvider.getRouteOptions(eq(directionsSession), eq(tripSession), eq(mockedLocation)) }
-
-        unmockkObject(AdjustedRouteOptionsProvider)
-    }
-
-    @Test
-    fun reRoute_called_with_null_bearings() {
-        val routeOptions = provideRouteOptionsWithCoordinates()
-        every { directionsSession.getRouteOptions() } returns routeOptions
-
-        val offRouteObserverSlot = slot<OffRouteObserver>()
-        verify { tripSession.registerOffRouteObserver(capture(offRouteObserverSlot)) }
-
-        offRouteObserverSlot.captured.onOffRouteStateChanged(true)
-
-        val optionsSlot = slot<RouteOptions>()
-        verify(exactly = 1) { directionsSession.requestRoutes(capture(optionsSlot), any()) }
-
-        val expectedBearings = listOf(
-            listOf(DEFAULT_REROUTE_BEARING_ANGLE.toDouble(), DEFAULT_REROUTE_BEARING_TOLERANCE),
-            null,
-            null,
-            null
-        )
-        val actualBearings = optionsSlot.captured.bearingsList()
-
-        assertEquals(expectedBearings, actualBearings)
-    }
-
-    @Test
-    fun reRoute_called_with_bearings() {
-        val routeOptions = provideRouteOptionsWithCoordinatesAndBearings()
-        every { directionsSession.getRouteOptions() } returns routeOptions
-
-        val observers = mutableListOf<OffRouteObserver>()
-        verify(exactly = 2) { tripSession.registerOffRouteObserver(capture(observers)) }
-
-        observers.forEach {
-            it.onOffRouteStateChanged(true)
-        }
-
-        val optionsSlot = slot<RouteOptions>()
-        verify(exactly = 1) { directionsSession.requestRoutes(capture(optionsSlot), any()) }
-
-        val expectedBearings = listOf(
-            listOf(DEFAULT_REROUTE_BEARING_ANGLE.toDouble(), 10.0),
-            listOf(20.0, 20.0),
-            listOf(30.0, 30.0),
-            listOf(40.0, 40.0)
-        )
-        val actualBearings = optionsSlot.captured.bearingsList()
-
-        assertEquals(expectedBearings, actualBearings)
+        verify(exactly = 1) { routeRefreshAdapter.newRouteOptions(any(), any(), eq(mockedLocation)) }
     }
 
     @Test
@@ -460,32 +411,6 @@ class MapboxNavigationTest {
             .geometries("")
             .requestUuid("")
 
-    private fun provideRouteOptionsWithCoordinates() =
-        provideDefaultRouteOptionsBuilder()
-            .coordinates(
-                listOf(
-                    Point.fromLngLat(1.0, 1.0),
-                    Point.fromLngLat(1.0, 1.0),
-                    Point.fromLngLat(1.0, 1.0),
-                    Point.fromLngLat(1.0, 1.0)
-                )
-            )
-            .build()
-
-    private fun provideRouteOptionsWithCoordinatesAndBearings() =
-        provideRouteOptionsWithCoordinates()
-            .toBuilder()
-            .bearingsList(
-                listOf(
-                    listOf(10.0, 10.0),
-                    listOf(20.0, 20.0),
-                    listOf(30.0, 30.0),
-                    listOf(40.0, 40.0),
-                    listOf(50.0, 50.0),
-                    listOf(60.0, 60.0)
-                )
-            )
-            .build()
 
     @After
     fun tearDown() {

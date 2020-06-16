@@ -23,6 +23,7 @@ import com.mapbox.navigation.base.options.DEFAULT_NAVIGATOR_PREDICTION_MILLIS
 import com.mapbox.navigation.base.options.NavigationOptions
 import com.mapbox.navigation.base.options.OnboardRouterOptions
 import com.mapbox.navigation.base.route.Router
+import com.mapbox.navigation.base.routerefresh.RouteRefreshAdapterProvider
 import com.mapbox.navigation.base.trip.model.RouteProgress
 import com.mapbox.navigation.base.trip.notification.NotificationAction
 import com.mapbox.navigation.base.trip.notification.TripNotification
@@ -31,7 +32,6 @@ import com.mapbox.navigation.core.arrival.ArrivalController
 import com.mapbox.navigation.core.arrival.ArrivalObserver
 import com.mapbox.navigation.core.arrival.ArrivalProgressObserver
 import com.mapbox.navigation.core.arrival.AutoArrivalController
-import com.mapbox.navigation.core.directions.session.AdjustedRouteOptionsProvider
 import com.mapbox.navigation.core.directions.session.DirectionsSession
 import com.mapbox.navigation.core.directions.session.RoutesObserver
 import com.mapbox.navigation.core.directions.session.RoutesRequestCallback
@@ -206,7 +206,7 @@ constructor(
             )
         }
 
-        fasterRouteController = FasterRouteController(directionsSession, tripSession, logger)
+        fasterRouteController = FasterRouteController(directionsSession, tripSession, RouteRefreshAdapterProvider.provideRouteRefreshAdapter(), logger)
         routeRefreshController = RouteRefreshController(directionsSession, tripSession, logger)
         routeRefreshController.start()
 
@@ -567,15 +567,17 @@ constructor(
     }
 
     private fun reroute() {
-        ifNonNull(tripSession.getEnhancedLocation()) { location ->
-            val optionsRebuilt = AdjustedRouteOptionsProvider.getRouteOptions(
-                directionsSession,
-                tripSession,
-                location
-            ) ?: return
-            directionsSession.requestRoutes(
-                optionsRebuilt,
-                null
+        ifNonNull(
+            directionsSession.getRouteOptions(),
+            tripSession.getRouteProgress(),
+            tripSession.getEnhancedLocation()
+        ) { routeOptions, routeProgress, location ->
+            val optionsRebuilt = navigationOptions.rerouteAdapter.newRouteOptions(routeOptions, routeProgress, location)
+            directionsSession.requestRoutes(optionsRebuilt, null)
+        } ?: kotlin.run {
+            logger.w(
+                Tag("MapboxNavigation"),
+                Message("Cannot combine route option for reroute request")
             )
         }
     }

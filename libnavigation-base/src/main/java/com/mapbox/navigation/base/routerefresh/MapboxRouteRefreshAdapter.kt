@@ -1,21 +1,25 @@
-package com.mapbox.navigation.core.directions.session
+package com.mapbox.navigation.base.routerefresh
 
 import android.location.Location
 import com.mapbox.api.directions.v5.models.RouteOptions
 import com.mapbox.geojson.Point
 import com.mapbox.navigation.base.trip.model.RouteProgress
-import com.mapbox.navigation.core.trip.session.TripSession
 
-internal object AdjustedRouteOptionsProvider {
+internal class MapboxRouteRefreshAdapter : RouteRefreshAdapter {
 
-    private const val DEFAULT_REROUTE_BEARING_TOLERANCE = 90.0
+    companion object {
+        const val DEFAULT_REROUTE_BEARING_TOLERANCE = 90.0
+    }
 
-    fun getRouteOptions(directionsSession: DirectionsSession, tripSession: TripSession, location: Location): RouteOptions? {
-        val routeOptions: RouteOptions = directionsSession.getRouteOptions() ?: return null
-        val routeProgress: RouteProgress = tripSession.getRouteProgress() ?: return null
+    override fun newRouteOptions(
+        routeOptions: RouteOptions,
+        routeProgress: RouteProgress,
+        location: Location
+    ): RouteOptions {
 
         val optionsBuilder = routeOptions.toBuilder()
         val coordinates = routeOptions.coordinates()
+
         routeProgress.currentLegProgress?.legIndex?.let { index ->
             optionsBuilder
                 .coordinates(

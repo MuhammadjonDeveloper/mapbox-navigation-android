@@ -2,7 +2,7 @@ package com.mapbox.navigation.core.fasterroute
 
 import com.mapbox.api.directions.v5.models.DirectionsRoute
 import com.mapbox.base.common.logger.Logger
-import com.mapbox.navigation.core.directions.session.AdjustedRouteOptionsProvider
+import com.mapbox.navigation.base.routerefresh.RouteRefreshAdapter
 import com.mapbox.navigation.core.directions.session.DirectionsSession
 import com.mapbox.navigation.core.directions.session.RoutesRequestCallback
 import com.mapbox.navigation.core.trip.session.TripSession
@@ -35,21 +35,16 @@ class FasterRouteControllerTest {
     private val routesRequestCallbacks = slot<RoutesRequestCallback>()
 
     private val logger: Logger = mockk()
-    private val fasterRouteController = FasterRouteController(directionsSession, tripSession, logger)
+    private val routeRefreshAdapter: RouteRefreshAdapter = mockk()
+    private val fasterRouteController = FasterRouteController(directionsSession, tripSession, routeRefreshAdapter, logger)
 
     @Before
     fun setup() {
-        mockkObject(AdjustedRouteOptionsProvider)
-        every { AdjustedRouteOptionsProvider.getRouteOptions(any(), any(), any()) } returns mockk()
+        every { routeRefreshAdapter.newRouteOptions(any(), any(), any()) } returns mockk()
 
         every { directionsSession.getRouteOptions() } returns mockk()
         every { directionsSession.requestFasterRoute(any(), capture(routesRequestCallbacks)) } returns mockk()
         every { tripSession.getRouteProgress() } returns mockk()
-    }
-
-    @After
-    fun teardown() {
-        unmockkObject(AdjustedRouteOptionsProvider)
     }
 
     @Test(expected = IllegalStateException::class)

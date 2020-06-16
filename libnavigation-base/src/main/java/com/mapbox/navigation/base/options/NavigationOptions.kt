@@ -2,6 +2,9 @@ package com.mapbox.navigation.base.options
 
 import com.mapbox.navigation.base.TimeFormat
 import com.mapbox.navigation.base.formatter.DistanceFormatter
+import com.mapbox.navigation.base.routerefresh.MapboxRouteRefreshAdapter
+import com.mapbox.navigation.base.routerefresh.RouteRefreshAdapter
+import com.mapbox.navigation.base.routerefresh.RouteRefreshAdapterProvider
 
 /**
  * Default navigator approximate prediction in milliseconds
@@ -39,6 +42,7 @@ data class NavigationOptions(
     val isFromNavigationUi: Boolean,
     val isDebugLoggingEnabled: Boolean,
     val deviceProfile: DeviceProfile,
+    val rerouteAdapter: RouteRefreshAdapter,
     val builder: Builder
 ) {
 
@@ -59,6 +63,7 @@ data class NavigationOptions(
         private var isFromNavigationUi: Boolean = false
         private var isDebugLoggingEnabled: Boolean = false
         private var deviceProfile: DeviceProfile = HandheldProfile()
+        private var rerouteAdapter: RouteRefreshAdapter = RouteRefreshAdapterProvider.provideRouteRefreshAdapter()
 
         /**
          * Defines [Mapbox Access Token](https://docs.mapbox.com/help/glossary/access-token/)
@@ -109,6 +114,15 @@ data class NavigationOptions(
             apply { this.isDebugLoggingEnabled = flag }
 
         /**
+         * Defines adapter that will be used by SDK on off route event.
+         * By default uses [MapboxRouteRefreshAdapter]
+         *
+         * @see [com.mapbox.navigation.core.trip.session.OffRouteObserver]
+         */
+        fun rerouteAdapter(rerouteAdapter: RouteRefreshAdapter) =
+            apply { this.rerouteAdapter = rerouteAdapter }
+
+        /**
          * Build a new instance of [NavigationOptions]
          * @return NavigationOptions
          */
@@ -122,6 +136,7 @@ data class NavigationOptions(
                 isFromNavigationUi = isFromNavigationUi,
                 isDebugLoggingEnabled = isDebugLoggingEnabled,
                 deviceProfile = deviceProfile,
+                rerouteAdapter = rerouteAdapter,
                 builder = this
             )
         }
