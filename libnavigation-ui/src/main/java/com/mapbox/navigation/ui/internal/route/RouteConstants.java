@@ -52,4 +52,7 @@ public class RouteConstants {
   public static final long ROUTE_LINE_VANISH_ANIMATION_DURATION = 900;
   public static final long ROUTE_LINE_VANISH_ANIMATION_DELAY = 100;
   public static final String LAYER_ABOVE_UPCOMING_MANEUVER_ARROW = "com.mapbox.annotations.points";
+  public static final String PRIMARY_ROUTE_PROPERTY_KEY = "primary-route";
+  public static final String ALTERNATIVE_ROUTE_PROPERTY_KEY = "alternative-route";
+  public static final String DEFAULT_ROUTE_DESCRIPTOR_PLACEHOLDER = "mapboxDescriptorPlaceHolderUnused";
 }

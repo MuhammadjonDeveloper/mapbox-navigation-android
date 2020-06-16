@@ -27,6 +27,7 @@ import com.mapbox.navigation.examples.core.ReRouteActivity
 import com.mapbox.navigation.examples.core.ReplayActivity
 import com.mapbox.navigation.examples.core.ReplayHistoryActivity
 import com.mapbox.navigation.examples.core.ReplayWaypointsActivity
+import com.mapbox.navigation.examples.core.RuntimeRouteStylingActivity
 import com.mapbox.navigation.examples.core.SimpleMapboxNavigationKt
 import com.mapbox.navigation.examples.core.SummaryBottomSheetActivity
 import com.mapbox.navigation.examples.core.TripServiceActivityKt
@@ -179,6 +180,11 @@ class CoreActivity : AppCompatActivity() {
                 getString(R.string.title_navigation_route_ui),
                 getString(R.string.description_navigation_route_ui),
                 NavigationMapRouteActivity::class.java
+            ),
+            SampleItem(
+                getString(R.string.title_runtime_styling),
+                getString(R.string.description_runtime_styling),
+                RuntimeRouteStylingActivity::class.java
             )
         )
     }

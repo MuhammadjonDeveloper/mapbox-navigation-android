@@ -6,6 +6,7 @@ import android.content.res.TypedArray
 import androidx.test.core.app.ApplicationProvider
 import com.mapbox.api.directions.v5.models.DirectionsRoute
 import com.mapbox.core.constants.Constants
+import com.mapbox.geojson.Feature
 import com.mapbox.geojson.FeatureCollection
 import com.mapbox.geojson.LineString
 import com.mapbox.geojson.Point
@@ -17,7 +18,6 @@ import com.mapbox.mapboxsdk.style.layers.LineLayer
 import com.mapbox.mapboxsdk.style.layers.SymbolLayer
 import com.mapbox.mapboxsdk.style.sources.GeoJsonSource
 import com.mapbox.navigation.ui.internal.ThemeSwitcher
-import com.mapbox.navigation.ui.internal.route.MapRouteLayerProvider
 import com.mapbox.navigation.ui.internal.route.MapRouteSourceProvider
 import com.mapbox.navigation.ui.internal.route.RouteConstants
 import com.mapbox.navigation.ui.internal.route.RouteConstants.ALTERNATIVE_ROUTE_LAYER_ID
@@ -26,6 +26,7 @@ import com.mapbox.navigation.ui.internal.route.RouteConstants.PRIMARY_ROUTE_LAYE
 import com.mapbox.navigation.ui.internal.route.RouteConstants.PRIMARY_ROUTE_SHIELD_LAYER_ID
 import com.mapbox.navigation.ui.internal.route.RouteConstants.PRIMARY_ROUTE_TRAFFIC_LAYER_ID
 import com.mapbox.navigation.ui.internal.route.RouteConstants.WAYPOINT_LAYER_ID
+import com.mapbox.navigation.ui.internal.route.RouteLayerProvider
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -50,7 +51,7 @@ class MapRouteLineTest {
     lateinit var alternativeRouteLineSource: GeoJsonSource
 
     lateinit var mapRouteSourceProvider: MapRouteSourceProvider
-    lateinit var layerProvider: MapRouteLayerProvider
+    lateinit var layerProvider: RouteLayerProvider
     lateinit var alternativeRouteShieldLayer: LineLayer
     lateinit var alternativeRouteLayer: LineLayer
     lateinit var primaryRouteShieldLayer: LineLayer
@@ -373,6 +374,39 @@ class MapRouteLineTest {
         val result = mapRouteLine.getPrimaryRoute()
 
         assertEquals(result, directionsRoute2)
+    }
+
+    @Test
+    fun updatePrimaryRouteIndexSwapsProperties() {
+        every { style.layers } returns listOf(primaryRouteLayer)
+        val directionsRoute: DirectionsRoute = getDirectionsRoute(true)
+        val directionsRoute2: DirectionsRoute = getDirectionsRoute(true)
+        val mapRouteLine = MapRouteLine(
+            ctx,
+            style,
+            styleRes,
+            null,
+            layerProvider,
+            mapRouteSourceProvider,
+            null
+        ).also { it.drawIdentifiableRoutes(listOf(
+            IdentifiableRoute(
+                directionsRoute,
+                "isPrimary"
+            ),
+            IdentifiableRoute(
+                directionsRoute2,
+                "isAlternative"
+            )
+        ))
+        }
+        assertEquals(mapRouteLine.getPrimaryRoute(), directionsRoute)
+        mapRouteLine.updatePrimaryRouteIndex(directionsRoute2)
+
+        val hasPrimaryProperty = mapRouteLine.retrieveRouteFeatureData()
+            .first { it.route == directionsRoute2 }.featureCollection.features()!![0].properties()!!.get("isPrimary").asBoolean
+
+        assertTrue(hasPrimaryProperty)
     }
 
     @Test
@@ -1033,6 +1067,25 @@ class MapRouteLineTest {
             PRIMARY_ROUTE_LAYER_ID,
             ALTERNATIVE_ROUTE_LAYER_ID
         )) }
+    }
+
+    @Test
+    fun swapProperties() {
+        val route = getDirectionsRoute(false)
+        val lineString = LineString.fromPolyline(route.geometry()!!, Constants.PRECISION_6)
+        val featureA = Feature.fromGeometry(lineString).also {
+            it.addBooleanProperty("featureAProperty", true)
+        }
+        val featureB = Feature.fromGeometry(lineString).also {
+            it.addBooleanProperty("featureBProperty", true)
+        }
+        assertEquals(true, featureA.properties()?.get("featureAProperty")!!.asBoolean)
+        assertEquals(true, featureB.properties()?.get("featureBProperty")!!.asBoolean)
+
+        MapRouteLine.MapRouteLineSupport.swapProperties(featureA, featureB)
+
+        assertEquals(true, featureA.properties()?.get("featureBProperty")!!.asBoolean)
+        assertEquals(true, featureB.properties()?.get("featureAProperty")!!.asBoolean)
     }
 
     private fun getMultilegRoute(): DirectionsRoute {
