@@ -38,14 +38,12 @@ internal object NavigationComponentProvider {
     fun createTripSession(
         tripService: TripService,
         locationEngine: LocationEngine,
-        locationEngineRequest: LocationEngineRequest,
         navigatorPredictionMillis: Long,
         navigator: MapboxNativeNavigator,
         logger: Logger
     ): TripSession = MapboxTripSession(
         tripService,
         locationEngine,
-        locationEngineRequest,
         navigatorPredictionMillis,
         navigator = navigator,
         logger = logger

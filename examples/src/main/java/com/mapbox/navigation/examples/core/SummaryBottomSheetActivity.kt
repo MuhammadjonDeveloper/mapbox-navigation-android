@@ -73,19 +73,16 @@ class SummaryBottomSheetActivity : AppCompatActivity(), OnMapReadyCallback {
         mapView.onCreate(savedInstanceState)
         mapView.getMapAsync(this)
 
-        val mapboxNavigationOptions = MapboxNavigation.defaultNavigationOptions(
-            this,
-            Utils.getMapboxAccessToken(this)
-        )
+        val mapboxNavigationOptions = MapboxNavigation
+            .defaultNavigationOptions(this, Utils.getMapboxAccessToken(this))
+            .locationEngine(getLocationEngine())
+            .build()
 
-        mapboxNavigation = MapboxNavigation(
-            applicationContext,
-            mapboxNavigationOptions,
-            getLocationEngine()
-        ).apply {
-            registerTripSessionStateObserver(tripSessionStateObserver)
-            registerRouteProgressObserver(routeProgressObserver)
-        }
+        mapboxNavigation = MapboxNavigation(mapboxNavigationOptions)
+            .apply {
+                registerTripSessionStateObserver(tripSessionStateObserver)
+                registerRouteProgressObserver(routeProgressObserver)
+            }
 
         initListeners()
     }
@@ -154,7 +151,6 @@ class SummaryBottomSheetActivity : AppCompatActivity(), OnMapReadyCallback {
                         mapboxReplayer.pushRealLocation(this, 0.0)
                         mapboxReplayer.play()
                     }
-                    mapboxNavigation?.locationEngine?.getLastLocation(locationListenerCallback)
                     Snackbar.make(mapView, R.string.msg_long_press_map_to_place_waypoint, LENGTH_SHORT)
                         .show()
                 }
@@ -349,21 +345,6 @@ class SummaryBottomSheetActivity : AppCompatActivity(), OnMapReadyCallback {
         }
 
         override fun onSlide(bottomSheet: View, slideOffset: Float) {
-        }
-    }
-
-    private val locationListenerCallback = MyLocationEngineCallback(this)
-
-    private class MyLocationEngineCallback(activity: SummaryBottomSheetActivity) :
-        LocationEngineCallback<LocationEngineResult> {
-
-        private val activityRef = WeakReference(activity)
-
-        override fun onSuccess(result: LocationEngineResult) {
-            activityRef.get()?.navigationMapboxMap?.updateLocation(result.lastLocation)
-        }
-
-        override fun onFailure(exception: Exception) {
         }
     }
 

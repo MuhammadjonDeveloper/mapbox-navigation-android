@@ -199,7 +199,6 @@ class CustomUIComponentStyleActivity : AppCompatActivity(), OnMapReadyCallback,
                 mapboxReplayer.pushRealLocation(this, 0.0)
                 mapboxReplayer.play()
             }
-            mapboxNavigation.locationEngine.getLastLocation(locationListenerCallback)
 
             Snackbar.make(
                 findViewById(R.id.navigationLayout),
@@ -362,11 +361,11 @@ class CustomUIComponentStyleActivity : AppCompatActivity(), OnMapReadyCallback,
 
     private fun initNavigation() {
         val accessToken = Utils.getMapboxAccessToken(this)
-        mapboxNavigation = MapboxNavigation(
-            applicationContext,
-            MapboxNavigation.defaultNavigationOptions(this, accessToken),
-            getLocationEngine()
-        )
+        val options = MapboxNavigation
+            .defaultNavigationOptions(this, accessToken)
+            .locationEngine(getLocationEngine())
+            .build()
+        mapboxNavigation = MapboxNavigation(options)
         mapboxNavigation.apply {
             registerTripSessionStateObserver(tripSessionStateObserver)
             registerRouteProgressObserver(routeProgressObserver)
@@ -532,25 +531,6 @@ class CustomUIComponentStyleActivity : AppCompatActivity(), OnMapReadyCallback,
         }
 
         override fun onSlide(bottomSheet: View, slideOffset: Float) {
-        }
-    }
-
-    private val locationListenerCallback = MyLocationEngineCallback(this)
-
-    private class MyLocationEngineCallback(activity: CustomUIComponentStyleActivity) :
-        LocationEngineCallback<LocationEngineResult> {
-
-        private val activityRef = WeakReference(activity)
-
-        override fun onSuccess(result: LocationEngineResult) {
-            result.locations.firstOrNull()?.let { location ->
-                Timber.d("location engine callback -> onSuccess location:%s", location)
-                activityRef.get()?.locationComponent?.forceLocationUpdate(location)
-            }
-        }
-
-        override fun onFailure(exception: Exception) {
-            Timber.e("location engine callback -> onFailure(%s)", exception.localizedMessage)
         }
     }
 

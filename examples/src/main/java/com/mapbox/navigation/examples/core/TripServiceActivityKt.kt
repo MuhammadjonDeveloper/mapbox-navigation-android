@@ -91,8 +91,7 @@ class TripServiceActivityKt : AppCompatActivity(), OnMapReadyCallback {
             .build(this)
 
         mapboxTripNotification = MapboxTripNotification(
-            applicationContext,
-            NavigationOptions.Builder()
+            NavigationOptions.Builder(applicationContext)
                 .distanceFormatter(formatter)
                 .timeFormatType(TWENTY_FOUR_HOURS)
                 .build()

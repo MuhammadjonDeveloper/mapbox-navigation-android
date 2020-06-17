@@ -77,18 +77,14 @@ class ReplayWaypointsActivity : AppCompatActivity(), OnMapReadyCallback {
         setContentView(R.layout.activity_replay_waypoints_layout)
         mapView.onCreate(savedInstanceState)
 
-        val mapboxNavigationOptions = MapboxNavigation.defaultNavigationOptions(
-            this,
-            Utils.getMapboxAccessToken(this)
-        )
+        val mapboxNavigationOptions = MapboxNavigation
+            .defaultNavigationOptions(this, Utils.getMapboxAccessToken(this))
+            .build()
 
-        mapboxNavigation = MapboxNavigation(
-            applicationContext,
-            mapboxNavigationOptions,
-            locationEngine = ReplayLocationEngine(mapboxReplayer)
-        ).apply {
-            registerTripSessionStateObserver(tripSessionStateObserver)
-        }
+        mapboxNavigation = MapboxNavigation(mapboxNavigationOptions)
+            .apply {
+                registerTripSessionStateObserver(tripSessionStateObserver)
+            }
 
         initListeners()
         mapView.getMapAsync(this)

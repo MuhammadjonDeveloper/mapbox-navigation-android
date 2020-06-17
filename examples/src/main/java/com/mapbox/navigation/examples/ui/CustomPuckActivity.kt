@@ -97,12 +97,11 @@ class CustomPuckActivity : AppCompatActivity(), OnNavigationReadyCallback,
                 navigationView.retrieveMapboxNavigation()?.let { this.mapboxNavigation = it }
 
                 val directionsRoute = getDirectionsRoute()
-                val optionsBuilder = NavigationViewOptions.builder()
+                val optionsBuilder = NavigationViewOptions.builder(this)
                 optionsBuilder.navigationListener(this)
                 optionsBuilder.directionsRoute(directionsRoute)
                 optionsBuilder.shouldSimulateRoute(true)
                 optionsBuilder.bannerInstructionsListener(this)
-                optionsBuilder.navigationOptions(NavigationOptions.Builder().build())
                 optionsBuilder.puckDrawableSupplier(CustomPuckDrawableSupplier())
                 navigationView.startNavigation(optionsBuilder.build())
             }

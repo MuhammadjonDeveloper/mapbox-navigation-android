@@ -27,8 +27,6 @@ import com.mapbox.navigation.trip.notification.MapboxTripNotification
 import kotlinx.android.synthetic.main.activity_trip_session.*
 import timber.log.Timber
 
-const val UPDATE_INTERVAL_IN_MILLISECONDS: Long = 1000
-const val FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS: Long = 500
 private const val NAVIGATOR_POLLING_DELAY = 1500L
 
 /**
@@ -104,8 +102,7 @@ class TripSessionActivityKt : AppCompatActivity(), OnMapReadyCallback {
             MapboxTripService(
                 applicationContext,
                 MapboxTripNotification(
-                    applicationContext,
-                    NavigationOptions.Builder()
+                    NavigationOptions.Builder(applicationContext)
                         .distanceFormatter(formatter)
                         .timeFormatType(TWENTY_FOUR_HOURS)
                         .build()
@@ -113,10 +110,6 @@ class TripSessionActivityKt : AppCompatActivity(), OnMapReadyCallback {
                 MapboxLogger
             ),
             LocationEngineProvider.getBestLocationEngine(applicationContext),
-            LocationEngineRequest.Builder(UPDATE_INTERVAL_IN_MILLISECONDS)
-                .setPriority(LocationEngineRequest.PRIORITY_HIGH_ACCURACY)
-                .setFastestInterval(FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS)
-                .build(),
             NAVIGATOR_POLLING_DELAY,
             logger = MapboxLogger
         )

@@ -223,7 +223,6 @@ class BasicNavigationFragment : Fragment(), OnMapReadyCallback, FeedbackBottomSh
                 mapboxReplayer.pushRealLocation(requireContext(), 0.0)
                 mapboxReplayer.play()
             }
-            mapboxNavigation.locationEngine.getLastLocation(locationListenerCallback)
 
             directionRoute?.let {
                 navigationMapboxMap?.drawRoute(it)
@@ -395,9 +394,7 @@ class BasicNavigationFragment : Fragment(), OnMapReadyCallback, FeedbackBottomSh
     private fun initNavigation() {
         val accessToken = Utils.getMapboxAccessToken(requireContext())
         mapboxNavigation = MapboxNavigation(
-            requireContext(),
-            MapboxNavigation.defaultNavigationOptions(requireContext(), accessToken),
-            getLocationEngine()
+            MapboxNavigation.defaultNavigationOptions(requireContext(), accessToken).build()
         )
         mapboxNavigation.apply {
             registerTripSessionStateObserver(tripSessionStateObserver)
@@ -573,25 +570,6 @@ class BasicNavigationFragment : Fragment(), OnMapReadyCallback, FeedbackBottomSh
         }
 
         override fun onSlide(bottomSheet: View, slideOffset: Float) {
-        }
-    }
-
-    private val locationListenerCallback = MyLocationEngineCallback(this)
-
-    private class MyLocationEngineCallback(fragment: BasicNavigationFragment) :
-        LocationEngineCallback<LocationEngineResult> {
-
-        private val fragmentRef = WeakReference(fragment)
-
-        override fun onSuccess(result: LocationEngineResult) {
-            result.locations.firstOrNull()?.let { location ->
-                Timber.d("location engine callback -> onSuccess location:%s", location)
-                fragmentRef.get()?.locationComponent?.forceLocationUpdate(location)
-            }
-        }
-
-        override fun onFailure(exception: Exception) {
-            Timber.e("location engine callback -> onFailure(%s)", exception.localizedMessage)
         }
     }
 

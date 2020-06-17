@@ -64,7 +64,6 @@ import kotlinx.coroutines.channels.ClosedSendChannelException
  */
 @MapboxModule(MapboxModuleType.NavigationTripNotification)
 class MapboxTripNotification constructor(
-    private val applicationContext: Context,
     private val navigationOptions: NavigationOptions
 ) : TripNotification {
 
@@ -78,6 +77,8 @@ class MapboxTripNotification constructor(
             "You need to provide a DistanceFormatter in order to use the default TripNotification. " +
                 "Also see MapboxNavigation#defaultNavigationOptions"
     }
+
+    val applicationContext = navigationOptions.applicationContext
 
     @StepManeuverType
     var currentManeuverType: String? = null

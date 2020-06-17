@@ -98,7 +98,7 @@ class CustomCameraActivity : AppCompatActivity(), OnNavigationReadyCallback,
                 navigationView.retrieveMapboxNavigation()?.let { this.mapboxNavigation = it }
 
                 val directionsRoute = getDirectionsRoute()
-                val optionsBuilder = NavigationViewOptions.builder()
+                val optionsBuilder = NavigationViewOptions.builder(this)
                 optionsBuilder.navigationListener(this)
                 optionsBuilder.directionsRoute(directionsRoute)
                 optionsBuilder.shouldSimulateRoute(true)
@@ -107,7 +107,6 @@ class CustomCameraActivity : AppCompatActivity(), OnNavigationReadyCallback,
                 // Add the custom camera
                 optionsBuilder.camera(CustomCamera())
 
-                optionsBuilder.navigationOptions(NavigationOptions.Builder().build())
                 navigationView.startNavigation(optionsBuilder.build())
             }
         }

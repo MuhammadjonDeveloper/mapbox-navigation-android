@@ -106,15 +106,11 @@ public class NavigationMapRouteActivity extends AppCompatActivity implements OnM
     this.mapboxMap = mapboxMap;
     mapboxMap.setStyle(Style.MAPBOX_STREETS, style -> {
       initializeLocationComponent(mapboxMap, style);
-      NavigationOptions navigationOptions = MapboxNavigation.defaultNavigationOptions(
-              this,
-              Utils.getMapboxAccessToken(this)
-      );
-      mapboxNavigation = new MapboxNavigation(
-              this.getApplicationContext(),
-              navigationOptions,
-              new ReplayLocationEngine(mapboxReplayer)
-      );
+      NavigationOptions navigationOptions = MapboxNavigation
+              .defaultNavigationOptions(this, Utils.getMapboxAccessToken(this))
+              .locationEngine(new ReplayLocationEngine(mapboxReplayer))
+              .build();
+      mapboxNavigation = new MapboxNavigation(navigationOptions);
       mapboxNavigation.registerLocationObserver(locationObserver);
       mapboxNavigation.registerRouteProgressObserver(replayProgressObserver);
       mapboxReplayer.pushRealLocation(this, 0.0);
@@ -126,7 +122,6 @@ public class NavigationMapRouteActivity extends AppCompatActivity implements OnM
               .withMapboxNavigation(mapboxNavigation, true)
               .build();
 
-      mapboxNavigation.getLocationEngine().getLastLocation(locationEngineCallback);
       mapboxMap.addOnMapLongClickListener(this);
 
       if (activeRoute != null) {
@@ -297,29 +292,6 @@ public class NavigationMapRouteActivity extends AppCompatActivity implements OnM
         Timber.d("route request canceled");
       }
   };
-
-
-  private MyLocationEngineCallback locationEngineCallback = new MyLocationEngineCallback(this);
-
-  private static class MyLocationEngineCallback implements LocationEngineCallback<LocationEngineResult> {
-
-    private WeakReference<NavigationMapRouteActivity> activityRef;
-
-    MyLocationEngineCallback(NavigationMapRouteActivity activity) {
-      this.activityRef = new WeakReference<>(activity);
-    }
-
-
-    @Override
-    public void onSuccess(LocationEngineResult result) {
-      activityRef.get().updateLocation(result.getLocations());
-    }
-
-    @Override
-    public void onFailure(@NonNull Exception exception) {
-      Timber.i(exception);
-    }
-  }
 
   private void updateLocation(Location location) {
     updateLocation(Arrays.asList(location));

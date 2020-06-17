@@ -102,12 +102,11 @@ class BuildingExtrusionActivity : AppCompatActivity(), OnNavigationReadyCallback
 
                 this.mapboxMap = navMapboxMap.retrieveMap()
 
-                val optionsBuilder = NavigationViewOptions.builder()
+                val optionsBuilder = NavigationViewOptions.builder(this)
                 optionsBuilder.navigationListener(this)
                 optionsBuilder.directionsRoute(route)
                 optionsBuilder.shouldSimulateRoute(true)
                 optionsBuilder.routeProgressObserver(this)
-                optionsBuilder.navigationOptions(NavigationOptions.Builder().build())
                 navigationView.startNavigation(optionsBuilder.build())
 
                 // Initialize the Navigation UI SDK's BuildingExtrusionLayer class.

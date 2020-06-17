@@ -101,12 +101,10 @@ class FasterRouteActivity : AppCompatActivity(), OnMapReadyCallback {
             when (tripSessionState) {
                 TripSessionState.STARTED -> {
                     startNavigation.visibility = GONE
-                    stopLocationUpdates()
                     mapboxNavigation.attachFasterRouteObserver(fasterRouteObserver)
                     mapboxNavigation.registerRouteProgressObserver(routeProgressObserver)
                 }
                 TripSessionState.STOPPED -> {
-                    startLocationUpdates()
                     mapboxNavigation.detachFasterRouteObserver()
                     mapboxNavigation.unregisterRouteProgressObserver(routeProgressObserver)
                     navigationMapboxMap?.removeRoute()
@@ -153,11 +151,11 @@ class FasterRouteActivity : AppCompatActivity(), OnMapReadyCallback {
         mapView.onCreate(savedInstanceState)
         mapView.getMapAsync(this)
 
-        val mapboxNavigationOptions = MapboxNavigation.defaultNavigationOptions(
-            this,
-            Mapbox.getAccessToken()
-        )
-        mapboxNavigation = MapboxNavigation(applicationContext, mapboxNavigationOptions).also {
+        val mapboxNavigationOptions = MapboxNavigation
+            .defaultNavigationOptions(this, Mapbox.getAccessToken())
+            .build()
+
+        mapboxNavigation = MapboxNavigation(mapboxNavigationOptions).also {
             it.registerRoutesObserver(routesObserver)
         }
 
@@ -251,7 +249,6 @@ class FasterRouteActivity : AppCompatActivity(), OnMapReadyCallback {
             }
             mapboxNavigation.startTripSession()
             navigationMapboxMap?.showAlternativeRoutes(false)
-            stopLocationUpdates()
         }
         dismissLayout.setOnClickListener {
             fasterRouteSelectionTimer.onFinish()
@@ -261,29 +258,6 @@ class FasterRouteActivity : AppCompatActivity(), OnMapReadyCallback {
                 mapboxNavigation.setRoutes(newRoutes)
             }
             fasterRouteSelectionTimer.onFinish()
-        }
-    }
-
-    private fun stopLocationUpdates() {
-        mapboxNavigation.locationEngine.removeLocationUpdates(locationListenerCallback)
-    }
-
-    @SuppressLint("RestrictedApi")
-    private fun startLocationUpdates() {
-        val requestLocationUpdateRequest =
-            LocationEngineRequest.Builder(DEFAULT_ENGINE_REQUEST_INTERVAL)
-                .setFastestInterval(DEFAULT_FASTEST_INTERVAL)
-                .setPriority(LocationEngineRequest.PRIORITY_HIGH_ACCURACY)
-                .build()
-        try {
-            mapboxNavigation.locationEngine.requestLocationUpdates(
-                requestLocationUpdateRequest,
-                locationListenerCallback,
-                mainLooper
-            )
-            mapboxNavigation.locationEngine.getLastLocation(locationListenerCallback)
-        } catch (exception: SecurityException) {
-            Timber.e(exception)
         }
     }
 

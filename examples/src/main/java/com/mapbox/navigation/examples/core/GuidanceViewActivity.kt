@@ -62,19 +62,16 @@ class GuidanceViewActivity : AppCompatActivity(), OnMapReadyCallback {
         mapView.onCreate(savedInstanceState)
         mapView.getMapAsync(this)
 
-        val options = MapboxNavigation.defaultNavigationOptions(
-                this,
-                Utils.getMapboxAccessToken(this)
-        )
+        val options = MapboxNavigation
+            .defaultNavigationOptions(this, Utils.getMapboxAccessToken(this))
+            .locationEngine(ReplayLocationEngine(mapboxReplayer))
+            .build()
 
-        mapboxNavigation = MapboxNavigation(
-                applicationContext,
-                options,
-                locationEngine = ReplayLocationEngine(mapboxReplayer)
-        ).also {
-            it.registerRouteProgressObserver(routeProgressObserver)
-            it.registerBannerInstructionsObserver(bannerInstructionObserver)
-        }
+        mapboxNavigation = MapboxNavigation(options)
+            .apply {
+                registerRouteProgressObserver(routeProgressObserver)
+                registerBannerInstructionsObserver(bannerInstructionObserver)
+            }
 
         initListeners()
     }

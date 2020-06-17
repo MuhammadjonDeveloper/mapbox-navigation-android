@@ -45,26 +45,18 @@ import timber.log.Timber
  */
 class ReRouteActivity : AppCompatActivity(), OnMapReadyCallback {
 
-    companion object {
-        const val DEFAULT_FASTEST_INTERVAL = 500L
-        const val DEFAULT_ENGINE_REQUEST_INTERVAL = 1000L
-    }
-
     private var mapboxNavigation: MapboxNavigation? = null
     private var navigationMapboxMap: NavigationMapboxMap? = null
     private var directionRoute: DirectionsRoute? = null
 
-    private val locationListenerCallback = MyLocationEngineCallback(this)
     private val tripSessionStateObserver = object : TripSessionStateObserver {
         override fun onSessionStateChanged(tripSessionState: TripSessionState) {
             when (tripSessionState) {
                 TripSessionState.STARTED -> {
                     startNavigation.visibility = GONE
-                    stopLocationUpdates()
                     mapboxNavigation?.registerRouteProgressObserver(routeProgressObserver)
                 }
                 TripSessionState.STOPPED -> {
-                    startLocationUpdates()
                     navigationMapboxMap?.removeRoute()
                     updateCameraOnNavigationStateChange(false)
                 }
@@ -110,20 +102,16 @@ class ReRouteActivity : AppCompatActivity(), OnMapReadyCallback {
         mapView.onCreate(savedInstanceState)
         mapView.getMapAsync(this)
 
-        val mapboxNavigationOptions = MapboxNavigation.defaultNavigationOptions(
-            this,
-            Utils.getMapboxAccessToken(this)
-        )
+        val mapboxNavigationOptions = MapboxNavigation
+            .defaultNavigationOptions(this, Utils.getMapboxAccessToken(this))
+            .build()
 
-        mapboxNavigation = MapboxNavigation(
-            applicationContext,
-            mapboxNavigationOptions,
-            locationEngine = LocationEngineProvider.getBestLocationEngine(this)
-        ).also {
-            it.registerRoutesObserver(routeObserver)
-            it.registerRouteProgressObserver(routeProgressObserver)
-            it.registerTripSessionStateObserver(tripSessionStateObserver)
-        }
+        mapboxNavigation = MapboxNavigation(mapboxNavigationOptions)
+            .also {
+                it.registerRoutesObserver(routeObserver)
+                it.registerRouteProgressObserver(routeProgressObserver)
+                it.registerTripSessionStateObserver(tripSessionStateObserver)
+            }
         initListeners()
     }
 
@@ -148,7 +136,6 @@ class ReRouteActivity : AppCompatActivity(), OnMapReadyCallback {
         mapboxNavigation?.unregisterTripSessionStateObserver(tripSessionStateObserver)
         mapboxNavigation?.unregisterRouteProgressObserver(routeProgressObserver)
         mapboxNavigation?.unregisterRoutesObserver(routeObserver)
-        stopLocationUpdates()
         mapView.onStop()
     }
 
@@ -168,8 +155,6 @@ class ReRouteActivity : AppCompatActivity(), OnMapReadyCallback {
         mapboxMap.setStyle(Style.MAPBOX_STREETS) { style ->
             mapboxMap.moveCamera(CameraUpdateFactory.zoomTo(15.0))
             navigationMapboxMap = NavigationMapboxMap(mapView, mapboxMap, this, true)
-
-            mapboxNavigation?.locationEngine?.getLastLocation(locationListenerCallback)
 
             directionRoute?.let {
                 navigationMapboxMap?.drawRoute(it)
@@ -209,26 +194,7 @@ class ReRouteActivity : AppCompatActivity(), OnMapReadyCallback {
             }
             mapboxNavigation?.startTripSession()
             startNavigation.visibility = View.GONE
-            stopLocationUpdates()
         }
-    }
-
-    private fun startLocationUpdates() {
-        val requestLocationUpdateRequest =
-            LocationEngineRequest.Builder(DEFAULT_ENGINE_REQUEST_INTERVAL)
-                .setFastestInterval(DEFAULT_FASTEST_INTERVAL)
-                .setPriority(LocationEngineRequest.PRIORITY_HIGH_ACCURACY)
-                .build()
-
-        mapboxNavigation?.locationEngine?.requestLocationUpdates(
-            requestLocationUpdateRequest,
-            locationListenerCallback,
-            mainLooper
-        )
-    }
-
-    private fun stopLocationUpdates() {
-        mapboxNavigation?.locationEngine?.removeLocationUpdates(locationListenerCallback)
     }
 
     private fun updateCameraOnNavigationStateChange(
@@ -242,21 +208,6 @@ class ReRouteActivity : AppCompatActivity(), OnMapReadyCallback {
                 updateCameraTrackingMode(NavigationCamera.NAVIGATION_TRACKING_MODE_NONE)
                 updateLocationLayerRenderMode(RenderMode.COMPASS)
             }
-        }
-    }
-
-    private class MyLocationEngineCallback(activity: ReRouteActivity) :
-        LocationEngineCallback<LocationEngineResult> {
-
-        private val activityRef = WeakReference(activity)
-
-        override fun onSuccess(result: LocationEngineResult?) {
-            result?.locations?.firstOrNull()?.let {
-                activityRef.get()?.navigationMapboxMap?.updateLocation(result.lastLocation)
-            }
-        }
-
-        override fun onFailure(exception: Exception) {
         }
     }
 

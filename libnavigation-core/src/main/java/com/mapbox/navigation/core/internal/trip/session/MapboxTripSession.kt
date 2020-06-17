@@ -51,7 +51,6 @@ import kotlinx.coroutines.withContext
  *
  * @param tripService TripService
  * @param locationEngine LocationEngine
- * @param locationEngineRequest LocationEngineRequest
  * @param navigatorPredictionMillis millis for navigation status predictions
  * For more information see [MapboxNativeNavigator.getStatus]. Unit is milliseconds
  * @param navigator Native navigator
@@ -63,7 +62,6 @@ import kotlinx.coroutines.withContext
 class MapboxTripSession(
     override val tripService: TripService,
     override val locationEngine: LocationEngine,
-    override val locationEngineRequest: LocationEngineRequest,
     private val navigatorPredictionMillis: Long,
     private val navigator: MapboxNativeNavigator = MapboxNativeNavigatorImpl,
     threadController: ThreadController = ThreadController,
@@ -83,6 +81,9 @@ class MapboxTripSession(
         }
     private val ioJobController: JobControl = threadController.getIOScopeAndRootJob()
     private val mainJobController: JobControl = threadController.getMainScopeAndRootJob()
+    override var locationEngineRequest: LocationEngineRequest = LocationEngineRequest.Builder(1000L)
+        .setPriority(LocationEngineRequest.PRIORITY_HIGH_ACCURACY)
+        .build()
 
     private val locationObservers = CopyOnWriteArraySet<LocationObserver>()
     private val routeProgressObservers = CopyOnWriteArraySet<RouteProgressObserver>()

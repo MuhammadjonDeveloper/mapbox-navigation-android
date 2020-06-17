@@ -68,18 +68,15 @@ class FeedbackButtonActivity : AppCompatActivity(), OnMapReadyCallback,
         mapView.onCreate(savedInstanceState)
         mapView.getMapAsync(this)
 
-        val mapboxNavigationOptions = MapboxNavigation.defaultNavigationOptions(
-            this,
-            Utils.getMapboxAccessToken(this)
-        )
+        val mapboxNavigationOptions = MapboxNavigation
+            .defaultNavigationOptions(this, Utils.getMapboxAccessToken(this))
+            .locationEngine(ReplayLocationEngine(mapboxReplayer))
+            .build()
 
-        mapboxNavigation = MapboxNavigation(
-            applicationContext,
-            mapboxNavigationOptions,
-            ReplayLocationEngine(mapboxReplayer)
-        ).apply {
-            registerTripSessionStateObserver(tripSessionStateObserver)
-        }
+        mapboxNavigation = MapboxNavigation(mapboxNavigationOptions)
+            .apply {
+                registerTripSessionStateObserver(tripSessionStateObserver)
+            }
 
         initListeners()
     }
@@ -145,7 +142,6 @@ class FeedbackButtonActivity : AppCompatActivity(), OnMapReadyCallback,
             mapboxNavigation?.registerRouteProgressObserver(ReplayProgressObserver(mapboxReplayer))
             mapboxReplayer.pushRealLocation(this, 0.0)
             mapboxReplayer.play()
-            mapboxNavigation?.locationEngine?.getLastLocation(locationListenerCallback)
 
             directionRoute?.let {
                 navigationMapboxMap?.drawRoute(it)
@@ -254,21 +250,6 @@ class FeedbackButtonActivity : AppCompatActivity(), OnMapReadyCallback,
                     updateCameraOnNavigationStateChange(false)
                 }
             }
-        }
-    }
-
-    private val locationListenerCallback = MyLocationEngineCallback(this)
-
-    private class MyLocationEngineCallback(activity: FeedbackButtonActivity) :
-        LocationEngineCallback<LocationEngineResult> {
-
-        private val activityRef = WeakReference(activity)
-
-        override fun onSuccess(result: LocationEngineResult) {
-            activityRef.get()?.navigationMapboxMap?.updateLocation(result.lastLocation)
-        }
-
-        override fun onFailure(exception: Exception) {
         }
     }
 

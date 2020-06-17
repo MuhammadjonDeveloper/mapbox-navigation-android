@@ -97,11 +97,10 @@ class NavigationViewFragment : Fragment(), OnNavigationReadyCallback, Navigation
                 this.navigationMapboxMap = navMapboxMap
                 this.navigationMapboxMap.updateLocationLayerRenderMode(RenderMode.NORMAL)
                 navigationView.retrieveMapboxNavigation()?.let { this.mapboxNavigation = it }
-                val optionsBuilder = NavigationViewOptions.builder()
+                val optionsBuilder = NavigationViewOptions.builder(this.context)
                 optionsBuilder.navigationListener(this)
                 optionsBuilder.directionsRoute(route)
                 optionsBuilder.shouldSimulateRoute(true)
-                optionsBuilder.navigationOptions(NavigationOptions.Builder().build())
                 optionsBuilder.enableVanishingRouteLine(true)
                 navigationView.startNavigation(optionsBuilder.build())
             }

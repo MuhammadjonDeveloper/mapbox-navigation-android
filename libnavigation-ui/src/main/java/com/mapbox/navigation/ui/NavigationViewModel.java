@@ -200,8 +200,10 @@ public class NavigationViewModel extends AndroidViewModel {
     }
 
     if (options.navigationOptions().getOnboardRouterOptions() == null) {
-      OnboardRouterOptions onboardRouterOptions =
-          MapboxNavigation.defaultNavigationOptions(getApplication(), accessToken).getOnboardRouterOptions();
+      OnboardRouterOptions onboardRouterOptions = MapboxNavigation
+              .defaultNavigationOptions(getApplication(), accessToken)
+              .build()
+              .getOnboardRouterOptions();
       updatedOptionsBuilder.onboardRouterOptions(onboardRouterOptions);
     }
 
@@ -209,7 +211,7 @@ public class NavigationViewModel extends AndroidViewModel {
     initializeTimeFormat(updatedOptions);
     if (!isRunning()) {
       LocationEngine locationEngine = initializeLocationEngineFrom(options);
-      initializeNavigation(getApplication(), updatedOptions, locationEngine);
+      initializeNavigation(updatedOptions);
       initializeVoiceInstructionLoader();
       initializeVoiceInstructionCache();
       initializeNavigationSpeechPlayer(options);
@@ -411,15 +413,8 @@ public class NavigationViewModel extends AndroidViewModel {
     }
   }
 
-  private void initializeNavigation(
-          Context context,
-          NavigationOptions options,
-          @Nullable LocationEngine locationEngine) {
-    if (locationEngine == null) {
-      navigation = new MapboxNavigation(context, options);
-    } else {
-      navigation = new MapboxNavigation(context, options, locationEngine);
-    }
+  private void initializeNavigation(NavigationOptions options) {
+    navigation = new MapboxNavigation(options);
     addNavigationListeners();
   }
 

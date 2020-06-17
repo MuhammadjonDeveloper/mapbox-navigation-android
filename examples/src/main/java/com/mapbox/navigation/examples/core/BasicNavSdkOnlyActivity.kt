@@ -68,16 +68,11 @@ class BasicNavSdkOnlyActivity : AppCompatActivity(), OnMapReadyCallback, MapboxM
         mapView.onCreate(savedInstanceState)
         mapView.getMapAsync(this)
 
-        val mapboxNavigationOptions = MapboxNavigation.defaultNavigationOptions(
-                this,
-                Utils.getMapboxAccessToken(this)
-        )
+        val mapboxNavigationOptions = MapboxNavigation
+            .defaultNavigationOptions(this, Utils.getMapboxAccessToken(this))
+            .build()
 
-        mapboxNavigation = MapboxNavigation(
-                applicationContext,
-                mapboxNavigationOptions,
-                LocationEngineProvider.getBestLocationEngine(this)
-        )
+        mapboxNavigation = MapboxNavigation(mapboxNavigationOptions)
         Snackbar.make(container, R.string.msg_long_press_map_to_place_waypoint, LENGTH_SHORT).show()
     }
 
