@@ -16,7 +16,7 @@ internal class MapboxRouteRefreshAdapter : RouteRefreshAdapter {
         routeProgress: RouteProgress?,
         location: Location?
     ): RouteOptions? {
-        if (routeOptions == null || routeProgress == null || location == null){
+        if (routeOptions == null || routeProgress == null || location == null) {
             // TODO Logging
             return null
         }
