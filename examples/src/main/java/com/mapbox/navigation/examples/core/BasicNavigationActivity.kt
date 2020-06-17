@@ -155,8 +155,8 @@ open class BasicNavigationActivity : AppCompatActivity(), OnMapReadyCallback {
     fun initListeners() {
         startNavigation.setOnClickListener {
             updateCameraOnNavigationStateChange(true)
-            if (mapboxNavigation?.getRoutes()?.isNotEmpty() == true) {
-                navigationMapboxMap?.startCamera(mapboxNavigation?.getRoutes()!![0])
+            mapboxNavigation?.getRoutes()?.firstOrNull()?.let {
+                navigationMapboxMap?.startCamera(it)
             }
             startNavigation.visibility = View.GONE
             mapboxNavigation?.startTripSession()
@@ -255,9 +255,7 @@ open class BasicNavigationActivity : AppCompatActivity(), OnMapReadyCallback {
         }
     }
 
-    private fun updateCameraOnNavigationStateChange(
-        navigationStarted: Boolean
-    ) {
+    private fun updateCameraOnNavigationStateChange(navigationStarted: Boolean) {
         navigationMapboxMap?.apply {
             if (navigationStarted) {
                 updateLocationLayerRenderMode(RenderMode.GPS)
