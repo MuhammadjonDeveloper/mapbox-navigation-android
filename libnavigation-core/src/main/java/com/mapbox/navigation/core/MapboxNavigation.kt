@@ -626,7 +626,6 @@ constructor(
                 )
             }
             MapboxModuleType.NavigationTripNotification -> arrayOf(
-                Context::class.java to navigationOptions.applicationContext,
                 NavigationOptions::class.java to navigationOptions
             )
             MapboxModuleType.CommonLogger -> arrayOf()
