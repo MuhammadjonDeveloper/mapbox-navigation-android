@@ -23,10 +23,11 @@ import com.mapbox.navigation.base.options.DEFAULT_NAVIGATOR_PREDICTION_MILLIS
 import com.mapbox.navigation.base.options.NavigationOptions
 import com.mapbox.navigation.base.options.OnboardRouterOptions
 import com.mapbox.navigation.base.route.Router
-import com.mapbox.navigation.base.routerefresh.RouteRefreshAdapterProvider
+import com.mapbox.navigation.base.routerefresh.RoutingOptionsProvider
 import com.mapbox.navigation.base.trip.model.RouteProgress
 import com.mapbox.navigation.base.trip.notification.NotificationAction
 import com.mapbox.navigation.base.trip.notification.TripNotification
+import com.mapbox.navigation.core.MapboxNavigation.Companion.defaultNavigationOptions
 import com.mapbox.navigation.core.accounts.NavigationAccountsSession
 import com.mapbox.navigation.core.arrival.ArrivalController
 import com.mapbox.navigation.core.arrival.ArrivalObserver
@@ -58,8 +59,8 @@ import com.mapbox.navigation.utils.internal.NetworkStatusService
 import com.mapbox.navigation.utils.internal.ThreadController
 import com.mapbox.navigation.utils.internal.ifNonNull
 import com.mapbox.navigation.utils.internal.monitorChannelWithException
-import java.lang.reflect.Field
 import kotlinx.coroutines.channels.ReceiveChannel
+import java.lang.reflect.Field
 
 private const val MAPBOX_NAVIGATION_USER_AGENT_BASE = "mapbox-navigation-android"
 private const val MAPBOX_NAVIGATION_UI_USER_AGENT_BASE = "mapbox-navigation-ui-android"
@@ -122,6 +123,7 @@ class MapboxNavigation
 constructor(
     private val context: Context,
     private val navigationOptions: NavigationOptions,
+    private val routingOptionsProvider: RoutingOptionsProvider = RoutingOptionsProvider(),
     val locationEngine: LocationEngine = LocationEngineProvider.getBestLocationEngine(context.applicationContext),
     locationEngineRequest: LocationEngineRequest = LocationEngineRequest.Builder(1000L)
         .setPriority(LocationEngineRequest.PRIORITY_HIGH_ACCURACY)
@@ -151,7 +153,10 @@ constructor(
     init {
         ThreadController.init()
         logger = MapboxModuleProvider.createModule(MapboxModuleType.CommonLogger, ::paramsProvider)
-        navigator = NavigationComponentProvider.createNativeNavigator(navigationOptions.deviceProfile, logger)
+        navigator = NavigationComponentProvider.createNativeNavigator(
+            navigationOptions.deviceProfile,
+            logger
+        )
         navigationSession = NavigationComponentProvider.createNavigationSession()
         directionsSession = NavigationComponentProvider.createDirectionsSession(
             MapboxModuleProvider.createModule(MapboxModuleType.NavigationRouter, ::paramsProvider)
@@ -206,7 +211,12 @@ constructor(
             )
         }
 
-        fasterRouteController = FasterRouteController(directionsSession, tripSession, RouteRefreshAdapterProvider.provideRouteRefreshAdapter(), logger)
+        fasterRouteController = FasterRouteController(
+            directionsSession,
+            tripSession,
+            routingOptionsProvider.provideFasterRouteRefreshAdapter(),
+            logger
+        )
         routeRefreshController = RouteRefreshController(directionsSession, tripSession, logger)
         routeRefreshController.start()
 
@@ -567,19 +577,12 @@ constructor(
     }
 
     private fun reroute() {
-        ifNonNull(
+        val optionsRebuilt = routingOptionsProvider.provideOffRouteRefreshAdapter().newRouteOptions(
             directionsSession.getRouteOptions(),
             tripSession.getRouteProgress(),
             tripSession.getEnhancedLocation()
-        ) { routeOptions, routeProgress, location ->
-            val optionsRebuilt = navigationOptions.rerouteAdapter.newRouteOptions(routeOptions, routeProgress, location)
-            directionsSession.requestRoutes(optionsRebuilt, null)
-        } ?: kotlin.run {
-            logger.w(
-                Tag("MapboxNavigation"),
-                Message("Cannot combine route option for reroute request")
-            )
-        }
+        ) ?: return
+        directionsSession.requestRoutes(optionsRebuilt, null)
     }
 
     private fun obtainUserAgent(isFromNavigationUi: Boolean): String {
@@ -677,7 +680,8 @@ constructor(
             @FeedbackEvent.Source feedbackSource: String,
             screenshot: String?,
             feedbackSubType: Array<String>? = emptyArray()
-        ) { MapboxNavigationTelemetry.postUserFeedback(
+        ) {
+            MapboxNavigationTelemetry.postUserFeedback(
                 feedbackType,
                 description,
                 feedbackSource,

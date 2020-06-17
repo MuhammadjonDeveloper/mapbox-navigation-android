@@ -17,8 +17,8 @@ interface RouteRefreshAdapter {
      * current *Location*
      */
     fun newRouteOptions(
-        routeOptions: RouteOptions,
-        routeProgress: RouteProgress,
-        location: Location
-    ): RouteOptions
+        routeOptions: RouteOptions?,
+        routeProgress: RouteProgress?,
+        location: Location?
+    ): RouteOptions?
 }

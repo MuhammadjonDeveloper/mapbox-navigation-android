@@ -12,10 +12,14 @@ internal class MapboxRouteRefreshAdapter : RouteRefreshAdapter {
     }
 
     override fun newRouteOptions(
-        routeOptions: RouteOptions,
-        routeProgress: RouteProgress,
-        location: Location
-    ): RouteOptions {
+        routeOptions: RouteOptions?,
+        routeProgress: RouteProgress?,
+        location: Location?
+    ): RouteOptions? {
+        if (routeOptions == null || routeProgress == null || location == null){
+            // TODO Logging
+            return null
+        }
 
         val optionsBuilder = routeOptions.toBuilder()
         val coordinates = routeOptions.coordinates()

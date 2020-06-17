@@ -4,13 +4,11 @@ import com.mapbox.api.directions.v5.models.DirectionsRoute
 import com.mapbox.api.directions.v5.models.RouteOptions
 import com.mapbox.base.common.logger.Logger
 import com.mapbox.base.common.logger.model.Message
-import com.mapbox.base.common.logger.model.Tag
 import com.mapbox.navigation.base.routerefresh.RouteRefreshAdapter
 import com.mapbox.navigation.core.directions.session.DirectionsSession
 import com.mapbox.navigation.core.directions.session.RoutesRequestCallback
 import com.mapbox.navigation.core.trip.session.TripSession
 import com.mapbox.navigation.utils.internal.MapboxTimer
-import com.mapbox.navigation.utils.internal.ifNonNull
 import java.util.concurrent.TimeUnit
 
 internal class FasterRouteController(
@@ -53,19 +51,13 @@ internal class FasterRouteController(
 
         fasterRouteTimer.restartAfterMillis = restartAfterMillis
 
-        ifNonNull(
+        val optionsRebuilt = routeRefreshAdapter.newRouteOptions(
             directionsSession.getRouteOptions(),
             tripSession.getRouteProgress(),
             tripSession.getEnhancedLocation()
-        ) { routeOptions, routeProgress, location ->
-            val optionsRebuilt = routeRefreshAdapter.newRouteOptions(routeOptions, routeProgress, location)
-            directionsSession.requestFasterRoute(optionsRebuilt, fasterRouteRequestCallback)
-        } ?: kotlin.run {
-            logger.w(
-                Tag("FasterRouteController"),
-                Message("Cannot combine route option for faster route request")
-            )
-        }
+        ) ?: return
+
+        directionsSession.requestFasterRoute(optionsRebuilt, fasterRouteRequestCallback)
     }
 
     private val fasterRouteRequestCallback = object : RoutesRequestCallback {
