@@ -86,7 +86,6 @@ open class BasicNavigationActivity : AppCompatActivity(), OnMapReadyCallback {
         mapboxMap.setStyle(Style.MAPBOX_STREETS) {
             navigationMapboxMap = NavigationMapboxMap(mapView, mapboxMap, this, true)
             mapboxMap.moveCamera(CameraUpdateFactory.zoomTo(15.0))
-            navigationMapboxMap?.updateCameraTrackingMode(NavigationCamera.NAVIGATION_TRACKING_MODE_GPS)
             navigationMapboxMap?.addProgressChangeListener(mapboxNavigation!!)
             mapInstanceState?.let { state ->
                 navigationMapboxMap?.restoreFrom(state)
@@ -94,7 +93,7 @@ open class BasicNavigationActivity : AppCompatActivity(), OnMapReadyCallback {
 
             mapboxNavigation?.registerTripSessionStateObserver(tripSessionStateObserver)
             mapboxNavigation?.registerRouteProgressObserver(routeProgressObserver)
-            mapboxNavigation?.startTripSession()
+            mapboxNavigation?.startLocationUpdates()
 
             when (directionRoute) {
                 null -> {
@@ -160,6 +159,7 @@ open class BasicNavigationActivity : AppCompatActivity(), OnMapReadyCallback {
                 navigationMapboxMap?.startCamera(mapboxNavigation?.getRoutes()!![0])
             }
             startNavigation.visibility = View.GONE
+            mapboxNavigation?.startTripSession()
         }
 
         fabToggleStyle.setOnClickListener {
@@ -226,10 +226,12 @@ open class BasicNavigationActivity : AppCompatActivity(), OnMapReadyCallback {
         override fun onSessionStateChanged(tripSessionState: TripSessionState) {
             when (tripSessionState) {
                 TripSessionState.STARTED -> {
+                    navigationMapboxMap?.updateCameraTrackingMode(NavigationCamera.NAVIGATION_TRACKING_MODE_GPS)
                     updateCameraOnNavigationStateChange(true)
                 }
                 TripSessionState.STOPPED -> {
                     navigationMapboxMap?.removeRoute()
+                    navigationMapboxMap?.updateCameraTrackingMode(NavigationCamera.NAVIGATION_TRACKING_MODE_NORTH)
                     updateCameraOnNavigationStateChange(false)
                 }
             }

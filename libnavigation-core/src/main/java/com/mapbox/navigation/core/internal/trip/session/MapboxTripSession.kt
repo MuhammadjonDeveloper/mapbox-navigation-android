@@ -34,7 +34,6 @@ import com.mapbox.navigation.utils.internal.JobControl
 import com.mapbox.navigation.utils.internal.ThreadController
 import com.mapbox.navigation.utils.internal.ifNonNull
 import com.mapbox.navigator.NavigationStatus
-import java.util.Date
 import java.util.concurrent.CopyOnWriteArraySet
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.cancelChildren
@@ -42,6 +41,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.*
 
 // todo make internal
 //  Currently under internal package because it's been used by TripSession examples in the test app
@@ -148,11 +148,12 @@ class MapboxTripSession(
             return
         }
         tripService.startService()
-        startLocationUpdates()
+        startMapMatching()
         state = TripSessionState.STARTED
     }
 
-    private fun startLocationUpdates() {
+    private fun startMapMatching() {
+        locationEngine.removeLocationUpdates(rawLocationEngineCallback)
         locationEngine.requestLocationUpdates(
             locationEngineRequest,
             locationEngineCallback,
@@ -169,15 +170,25 @@ class MapboxTripSession(
             return
         }
         tripService.stopService()
-        stopLocationUpdates()
+        locationEngine.removeLocationUpdates(locationEngineCallback)
         ioJobController.job.cancelChildren()
         mainJobController.job.cancelChildren()
         reset()
         state = TripSessionState.STOPPED
     }
 
-    private fun stopLocationUpdates() {
+    override fun startLocationUpdates() {
         locationEngine.removeLocationUpdates(locationEngineCallback)
+        locationEngine.requestLocationUpdates(
+            locationEngineRequest,
+            rawLocationEngineCallback,
+            Looper.getMainLooper()
+        )
+        locationEngine.getLastLocation(rawLocationEngineCallback)
+    }
+
+    override fun stopLocationUpdates() {
+        locationEngine.removeLocationUpdates(rawLocationEngineCallback)
     }
 
     private fun reset() {
@@ -390,6 +401,24 @@ class MapboxTripSession(
         override fun onFailure(exception: Exception) {
             logger.d(
                 msg = Message("location on failure"),
+                tr = exception
+            )
+        }
+    }
+
+    private val rawLocationEngineCallback = object : LocationEngineCallback<LocationEngineResult> {
+        override fun onSuccess(result: LocationEngineResult?) {
+            result?.locations?.firstOrNull()?.let { rawLocation ->
+                locationObservers.forEach {
+                    it.onRawLocationChanged(rawLocation)
+                    it.onEnhancedLocationChanged(rawLocation, Collections.singletonList(rawLocation))
+                }
+            }
+        }
+
+        override fun onFailure(exception: Exception) {
+            logger.d(
+                msg = Message("Raw location failure"),
                 tr = exception
             )
         }

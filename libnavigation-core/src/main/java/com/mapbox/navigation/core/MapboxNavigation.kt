@@ -235,6 +235,23 @@ constructor(
     }
 
     /**
+     * TODO
+     */
+    @RequiresPermission(anyOf = [ACCESS_COARSE_LOCATION, ACCESS_FINE_LOCATION])
+    fun startLocationUpdates() {
+        tripSession.stop()
+        tripSession.startLocationUpdates()
+    }
+
+    /**
+     * TODO
+     */
+    fun stopLocationUpdates() {
+        tripSession.stop()
+        tripSession.startLocationUpdates()
+    }
+
+    /**
      * Return the current [TripSession]'s state.
      * The state is [STARTED] when the session is active, running a foreground service and
      * requesting and returning location updates.
