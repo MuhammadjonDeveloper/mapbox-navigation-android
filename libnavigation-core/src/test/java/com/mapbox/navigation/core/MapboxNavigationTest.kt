@@ -13,7 +13,6 @@ import com.mapbox.api.directions.v5.models.DirectionsRoute
 import com.mapbox.api.directions.v5.models.RouteOptions
 import com.mapbox.base.common.logger.Logger
 import com.mapbox.common.module.provider.MapboxModuleProvider
-import com.mapbox.geojson.Point
 import com.mapbox.navigation.base.TimeFormat.NONE_SPECIFIED
 import com.mapbox.navigation.base.internal.extensions.inferDeviceLocale
 import com.mapbox.navigation.base.internal.route.RouteUrl
@@ -21,6 +20,7 @@ import com.mapbox.navigation.base.options.NavigationOptions
 import com.mapbox.navigation.base.options.OnboardRouterOptions
 import com.mapbox.navigation.base.route.Router
 import com.mapbox.navigation.base.routerefresh.RouteRefreshAdapter
+import com.mapbox.navigation.base.routerefresh.RoutingOptionsProvider
 import com.mapbox.navigation.base.trip.model.RouteProgress
 import com.mapbox.navigation.core.directions.session.DirectionsSession
 import com.mapbox.navigation.core.directions.session.RoutesObserver
@@ -43,7 +43,6 @@ import java.util.Locale
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.InternalCoroutinesApi
 import org.junit.After
-import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Before
 import org.junit.BeforeClass
@@ -76,6 +75,7 @@ class MapboxNavigationTest {
     private val navigationSession: NavigationSession = mockk(relaxUnitFun = true)
     private val logger: Logger = mockk(relaxUnitFun = true)
     private val routeRefreshAdapter: RouteRefreshAdapter = mockk()
+    private val routingOptionsProvider: RoutingOptionsProvider = mockk()
 
     private val navigationOptions = NavigationOptions
         .Builder()
@@ -84,7 +84,6 @@ class MapboxNavigationTest {
         .navigatorPredictionMillis(1500L)
         .onboardRouterOptions(onBoardRouterOptions)
         .timeFormatType(NONE_SPECIFIED)
-        .rerouteAdapter(routeRefreshAdapter)
         .build()
 
     private lateinit var mapboxNavigation: MapboxNavigation
@@ -145,10 +144,13 @@ class MapboxNavigationTest {
 
         every { navigator.create(any(), logger) } returns navigator
 
-        mapboxNavigation =
-            MapboxNavigation(
+        every { routingOptionsProvider.provideFasterRouteRefreshAdapter() } returns routeRefreshAdapter
+        every { routingOptionsProvider.provideOffRouteRefreshAdapter() } returns routeRefreshAdapter
+
+        mapboxNavigation = MapboxNavigation(
                 context,
                 navigationOptions,
+                routingOptionsProvider,
                 locationEngine,
                 locationEngineRequest
             )
@@ -410,7 +412,6 @@ class MapboxNavigationTest {
             .coordinates(emptyList())
             .geometries("")
             .requestUuid("")
-
 
     @After
     fun tearDown() {

@@ -9,13 +9,10 @@ import com.mapbox.navigation.core.trip.session.TripSession
 import com.mapbox.navigation.testing.MainCoroutineRule
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.mockkObject
 import io.mockk.slot
-import io.mockk.unmockkObject
 import io.mockk.verify
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test

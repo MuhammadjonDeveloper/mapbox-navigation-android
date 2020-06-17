@@ -7,15 +7,15 @@ import com.mapbox.navigation.base.internal.route.RouteUrl
 import com.mapbox.navigation.base.trip.model.RouteProgress
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.slot
-import io.mockk.verify
-import org.junit.Assert
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Test
 
 class MapboxRouteRefreshAdapterTest {
 
-    private val accessToken = "pk.1234"
+    private val accessToken = "pk.1234pplffd"
 
     private lateinit var routeRefreshAdapter: MapboxRouteRefreshAdapter
     private lateinit var location: Location
@@ -25,36 +25,43 @@ class MapboxRouteRefreshAdapterTest {
     }
 
     @Before
-    fun setup(){
+    fun setup() {
         routeRefreshAdapter = MapboxRouteRefreshAdapter()
 
         mockLocation()
     }
 
     @Test
-    fun reRoute_called_with_null_bearings() {
+    fun new_options_return_with_null_bearings() {
         val routeOptions = provideRouteOptionsWithCoordinates()
         val routeProgress: RouteProgress = mockk(relaxed = true)
 
-        val newRouteOptions = routeRefreshAdapter.newRouteOptions(routeOptions, routeProgress, location)
+        val newRouteOptions =
+            routeRefreshAdapter.newRouteOptions(routeOptions, routeProgress, location)
+        assertNotNull(newRouteOptions)
 
         val expectedBearings = listOf(
-            listOf(DEFAULT_REROUTE_BEARING_ANGLE.toDouble(), MapboxRouteRefreshAdapter.DEFAULT_REROUTE_BEARING_TOLERANCE),
+            listOf(
+                DEFAULT_REROUTE_BEARING_ANGLE.toDouble(),
+                MapboxRouteRefreshAdapter.DEFAULT_REROUTE_BEARING_TOLERANCE
+            ),
             null,
             null,
             null
         )
-        val actualBearings = newRouteOptions.bearingsList()
+        val actualBearings = newRouteOptions!!.bearingsList()
 
-        Assert.assertEquals(expectedBearings, actualBearings)
+        assertEquals(expectedBearings, actualBearings)
     }
 
     @Test
-    fun reRoute_called_with_bearings() {
+    fun new_options_return_with_bearing() {
         val routeOptions = provideRouteOptionsWithCoordinatesAndBearings()
         val routeProgress: RouteProgress = mockk(relaxed = true)
 
-        val newRouteOptions = routeRefreshAdapter.newRouteOptions(routeOptions, routeProgress, location)
+        val newRouteOptions =
+            routeRefreshAdapter.newRouteOptions(routeOptions, routeProgress, location)
+        assertNotNull(newRouteOptions)
 
         val expectedBearings = listOf(
             listOf(DEFAULT_REROUTE_BEARING_ANGLE.toDouble(), 10.0),
@@ -62,9 +69,27 @@ class MapboxRouteRefreshAdapterTest {
             listOf(30.0, 30.0),
             listOf(40.0, 40.0)
         )
-        val actualBearings = newRouteOptions.bearingsList()
+        val actualBearings = newRouteOptions!!.bearingsList()
 
-        Assert.assertEquals(expectedBearings, actualBearings)
+        assertEquals(expectedBearings, actualBearings)
+    }
+
+    @Test
+    fun no_options_on_invalid_input() {
+        val invalidInput = mutableListOf<Triple<RouteOptions?, RouteProgress?, Location?>>()
+        invalidInput.add(Triple(null, mockk(), mockk()))
+        invalidInput.add(Triple(mockk(), null, null))
+        invalidInput.add(Triple(mockk(), mockk(), null))
+
+        invalidInput.forEach { (routeOptions, routeProgress, location) ->
+            val message =
+                """routeOptions is ${routeOptions.isNullToString()}; routeProgress is ${routeProgress.isNullToString()}; location is ${location.isNullToString()}"""
+
+            assertNull(
+                message,
+                routeRefreshAdapter.newRouteOptions(routeOptions, routeProgress, location)
+            )
+        }
     }
 
     private fun mockLocation() {
@@ -111,5 +136,5 @@ class MapboxRouteRefreshAdapterTest {
             .geometries("")
             .requestUuid("")
 
-
+    private fun Any?.isNullToString(): String = if (this == null) "Null" else "NonNull"
 }
