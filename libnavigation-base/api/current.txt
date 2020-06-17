@@ -179,6 +179,20 @@ package com.mapbox.navigation.base.route {
 
 }
 
+package com.mapbox.navigation.base.routerefresh {
+
+  public interface RouteRefreshAdapter {
+    method public com.mapbox.api.directions.v5.models.RouteOptions? newRouteOptions(com.mapbox.api.directions.v5.models.RouteOptions? routeOptions, com.mapbox.navigation.base.trip.model.RouteProgress? routeProgress, android.location.Location? location);
+  }
+
+  public class RoutingOptionsProvider {
+    ctor public RoutingOptionsProvider();
+    method public final com.mapbox.navigation.base.routerefresh.RouteRefreshAdapter provideFasterRouteRefreshAdapter();
+    method public com.mapbox.navigation.base.routerefresh.RouteRefreshAdapter provideOffRouteRefreshAdapter();
+  }
+
+}
+
 package com.mapbox.navigation.base.trip.model {
 
   public final class RouteLegProgress {

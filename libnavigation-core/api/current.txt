@@ -2,8 +2,9 @@
 package com.mapbox.navigation.core {
 
   public final class MapboxNavigation {
-    ctor public MapboxNavigation(android.content.Context context, com.mapbox.navigation.base.options.NavigationOptions navigationOptions, com.mapbox.android.core.location.LocationEngine locationEngine, com.mapbox.android.core.location.LocationEngineRequest locationEngineRequest);
-    ctor public MapboxNavigation(android.content.Context context, com.mapbox.navigation.base.options.NavigationOptions navigationOptions, com.mapbox.android.core.location.LocationEngine locationEngine);
+    ctor public MapboxNavigation(android.content.Context context, com.mapbox.navigation.base.options.NavigationOptions navigationOptions, com.mapbox.navigation.base.routerefresh.RoutingOptionsProvider routingOptionsProvider, com.mapbox.android.core.location.LocationEngine locationEngine, com.mapbox.android.core.location.LocationEngineRequest locationEngineRequest);
+    ctor public MapboxNavigation(android.content.Context context, com.mapbox.navigation.base.options.NavigationOptions navigationOptions, com.mapbox.navigation.base.routerefresh.RoutingOptionsProvider routingOptionsProvider, com.mapbox.android.core.location.LocationEngine locationEngine);
+    ctor public MapboxNavigation(android.content.Context context, com.mapbox.navigation.base.options.NavigationOptions navigationOptions, com.mapbox.navigation.base.routerefresh.RoutingOptionsProvider routingOptionsProvider);
     ctor public MapboxNavigation(android.content.Context context, com.mapbox.navigation.base.options.NavigationOptions navigationOptions);
     method public void addHistoryEvent(String eventType, String eventJsonProperties);
     method public void attachArrivalController(com.mapbox.navigation.core.arrival.ArrivalController arrivalController = com.mapbox.navigation.core.arrival.AutoArrivalController());
