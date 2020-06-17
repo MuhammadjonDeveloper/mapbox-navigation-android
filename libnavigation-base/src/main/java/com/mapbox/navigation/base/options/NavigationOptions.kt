@@ -26,7 +26,9 @@ const val DEFAULT_NAVIGATOR_PREDICTION_MILLIS = 1100L
  * in such a way as to project the location forward along the current trajectory so as to
  * appear more in sync with the users ground-truth location
  *
+ * @param applicationContext the Context of the Android Application
  * @param accessToken [Mapbox Access Token](https://docs.mapbox.com/help/glossary/access-token/)
+ * @param locationEngine the mechanism responsible for providing location approximations to navigation
  * @param distanceFormatter [DistanceFormatter] for format distances showing in notification during navigation
  * @param onboardRouterOptions [OnboardRouterOptions] defines configuration for the default on-board router
  * @param isFromNavigationUi Boolean *true* if is called from UI, otherwise *false*
@@ -75,7 +77,7 @@ data class NavigationOptions(
             apply { this.accessToken = accessToken }
 
         /**
-         * Defines [Mapbox Access Token](https://docs.mapbox.com/help/glossary/access-token/)
+         * Override the mechanism responsible for providing location approximations to navigation
          */
         fun locationEngine(locationEngine: LocationEngine) =
             apply { this.locationEngine = locationEngine }
