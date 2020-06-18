@@ -4,7 +4,7 @@ import com.mapbox.api.directions.v5.models.DirectionsRoute
 import com.mapbox.api.directions.v5.models.RouteOptions
 import com.mapbox.base.common.logger.Logger
 import com.mapbox.base.common.logger.model.Message
-import com.mapbox.navigation.base.routerefresh.RouteRefreshAdapter
+import com.mapbox.navigation.base.routerefresh.RouteOptionsProvider
 import com.mapbox.navigation.core.directions.session.DirectionsSession
 import com.mapbox.navigation.core.directions.session.RoutesRequestCallback
 import com.mapbox.navigation.core.trip.session.TripSession
@@ -14,7 +14,7 @@ import java.util.concurrent.TimeUnit
 internal class FasterRouteController(
     private val directionsSession: DirectionsSession,
     private val tripSession: TripSession,
-    private val routeRefreshAdapter: RouteRefreshAdapter,
+    private val routeOptionsProvider: RouteOptionsProvider,
     private val logger: Logger
 ) {
 
@@ -51,13 +51,14 @@ internal class FasterRouteController(
 
         fasterRouteTimer.restartAfterMillis = restartAfterMillis
 
-        val optionsRebuilt = routeRefreshAdapter.newRouteOptions(
+        routeOptionsProvider.newRouteOptions(
             directionsSession.getRouteOptions(),
             tripSession.getRouteProgress(),
             tripSession.getEnhancedLocation()
-        ) ?: return
-
-        directionsSession.requestFasterRoute(optionsRebuilt, fasterRouteRequestCallback)
+        )
+            ?.let { routeOptions ->
+                directionsSession.requestFasterRoute(routeOptions, fasterRouteRequestCallback)
+            }
     }
 
     private val fasterRouteRequestCallback = object : RoutesRequestCallback {

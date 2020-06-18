@@ -19,8 +19,7 @@ import com.mapbox.navigation.base.internal.route.RouteUrl
 import com.mapbox.navigation.base.options.NavigationOptions
 import com.mapbox.navigation.base.options.OnboardRouterOptions
 import com.mapbox.navigation.base.route.Router
-import com.mapbox.navigation.base.routerefresh.RouteRefreshAdapter
-import com.mapbox.navigation.base.routerefresh.RoutingOptionsProvider
+import com.mapbox.navigation.base.routerefresh.RouteOptionsProvider
 import com.mapbox.navigation.base.trip.model.RouteProgress
 import com.mapbox.navigation.core.directions.session.DirectionsSession
 import com.mapbox.navigation.core.directions.session.RoutesObserver
@@ -74,8 +73,7 @@ class MapboxNavigationTest {
     private val routeProgress: RouteProgress = mockk(relaxed = true)
     private val navigationSession: NavigationSession = mockk(relaxUnitFun = true)
     private val logger: Logger = mockk(relaxUnitFun = true)
-    private val routeRefreshAdapter: RouteRefreshAdapter = mockk()
-    private val routingOptionsProvider: RoutingOptionsProvider = mockk()
+    private val routeOptionsProviderOffRoute: RouteOptionsProvider = mockk()
 
     private val navigationOptions = NavigationOptions
         .Builder()
@@ -140,20 +138,18 @@ class MapboxNavigationTest {
         mockDirectionSession()
         mockNavigationSession()
 
-        every { routeRefreshAdapter.newRouteOptions(any(), any(), any()) } returns routeOptions
+        every { routeOptionsProviderOffRoute.newRouteOptions(any(), any(), any()) } returns routeOptions
 
         every { navigator.create(any(), logger) } returns navigator
 
-        every { routingOptionsProvider.provideFasterRouteRefreshAdapter() } returns routeRefreshAdapter
-        every { routingOptionsProvider.provideOffRouteRefreshAdapter() } returns routeRefreshAdapter
 
         mapboxNavigation = MapboxNavigation(
                 context,
                 navigationOptions,
-                routingOptionsProvider,
                 locationEngine,
                 locationEngineRequest
             )
+        mapboxNavigation.setRouteOptionsProviderOnOffRoute(routeOptionsProviderOffRoute)
     }
 
     @Test
@@ -312,7 +308,7 @@ class MapboxNavigationTest {
             it.onOffRouteStateChanged(true)
         }
 
-        verify(exactly = 1) { routeRefreshAdapter.newRouteOptions(any(), any(), eq(mockedLocation)) }
+        verify(exactly = 1) { routeOptionsProviderOffRoute.newRouteOptions(any(), any(), eq(mockedLocation)) }
     }
 
     @Test

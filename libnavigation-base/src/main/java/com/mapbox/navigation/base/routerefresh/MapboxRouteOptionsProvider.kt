@@ -5,12 +5,19 @@ import com.mapbox.api.directions.v5.models.RouteOptions
 import com.mapbox.geojson.Point
 import com.mapbox.navigation.base.trip.model.RouteProgress
 
-internal class MapboxRouteRefreshAdapter : RouteRefreshAdapter {
+/**
+ * Default implementation of [RouteOptionsProvider]
+ */
+class MapboxRouteOptionsProvider : RouteOptionsProvider {
 
     companion object {
         const val DEFAULT_REROUTE_BEARING_TOLERANCE = 90.0
     }
 
+    /**
+     * Provide a new instance *RouteOptions* based on initial *RouteOptions*, *RouteProgress* and
+     * current *Location*
+     */
     override fun newRouteOptions(
         routeOptions: RouteOptions?,
         routeProgress: RouteProgress?,

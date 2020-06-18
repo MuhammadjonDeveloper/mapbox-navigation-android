@@ -2,7 +2,7 @@ package com.mapbox.navigation.core.fasterroute
 
 import com.mapbox.api.directions.v5.models.DirectionsRoute
 import com.mapbox.base.common.logger.Logger
-import com.mapbox.navigation.base.routerefresh.RouteRefreshAdapter
+import com.mapbox.navigation.base.routerefresh.RouteOptionsProvider
 import com.mapbox.navigation.core.directions.session.DirectionsSession
 import com.mapbox.navigation.core.directions.session.RoutesRequestCallback
 import com.mapbox.navigation.core.trip.session.TripSession
@@ -32,12 +32,12 @@ class FasterRouteControllerTest {
     private val routesRequestCallbacks = slot<RoutesRequestCallback>()
 
     private val logger: Logger = mockk()
-    private val routeRefreshAdapter: RouteRefreshAdapter = mockk()
-    private val fasterRouteController = FasterRouteController(directionsSession, tripSession, routeRefreshAdapter, logger)
+    private val routeOptionsProvider: RouteOptionsProvider = mockk()
+    private val fasterRouteController = FasterRouteController(directionsSession, tripSession, routeOptionsProvider, logger)
 
     @Before
     fun setup() {
-        every { routeRefreshAdapter.newRouteOptions(any(), any(), any()) } returns mockk()
+        every { routeOptionsProvider.newRouteOptions(any(), any(), any()) } returns mockk()
 
         every { directionsSession.getRouteOptions() } returns mockk()
         every { directionsSession.requestFasterRoute(any(), capture(routesRequestCallbacks)) } returns mockk()

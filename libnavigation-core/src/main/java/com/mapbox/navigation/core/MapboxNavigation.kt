@@ -23,7 +23,8 @@ import com.mapbox.navigation.base.options.DEFAULT_NAVIGATOR_PREDICTION_MILLIS
 import com.mapbox.navigation.base.options.NavigationOptions
 import com.mapbox.navigation.base.options.OnboardRouterOptions
 import com.mapbox.navigation.base.route.Router
-import com.mapbox.navigation.base.routerefresh.RoutingOptionsProvider
+import com.mapbox.navigation.base.routerefresh.MapboxRouteOptionsProvider
+import com.mapbox.navigation.base.routerefresh.RouteOptionsProvider
 import com.mapbox.navigation.base.trip.model.RouteProgress
 import com.mapbox.navigation.base.trip.notification.NotificationAction
 import com.mapbox.navigation.base.trip.notification.TripNotification
@@ -59,8 +60,8 @@ import com.mapbox.navigation.utils.internal.NetworkStatusService
 import com.mapbox.navigation.utils.internal.ThreadController
 import com.mapbox.navigation.utils.internal.ifNonNull
 import com.mapbox.navigation.utils.internal.monitorChannelWithException
-import java.lang.reflect.Field
 import kotlinx.coroutines.channels.ReceiveChannel
+import java.lang.reflect.Field
 
 private const val MAPBOX_NAVIGATION_USER_AGENT_BASE = "mapbox-navigation-android"
 private const val MAPBOX_NAVIGATION_UI_USER_AGENT_BASE = "mapbox-navigation-ui-android"
@@ -123,7 +124,6 @@ class MapboxNavigation
 constructor(
     private val context: Context,
     private val navigationOptions: NavigationOptions,
-    private val routingOptionsProvider: RoutingOptionsProvider = RoutingOptionsProvider(),
     val locationEngine: LocationEngine = LocationEngineProvider.getBestLocationEngine(context.applicationContext),
     locationEngineRequest: LocationEngineRequest = LocationEngineRequest.Builder(1000L)
         .setPriority(LocationEngineRequest.PRIORITY_HIGH_ACCURACY)
@@ -144,6 +144,7 @@ constructor(
     private val fasterRouteController: FasterRouteController
     private val routeRefreshController: RouteRefreshController
     private val arrivalProgressObserver: ArrivalProgressObserver
+    private var routeOptionsProviderOffRoute: RouteOptionsProvider
 
     private var notificationChannelField: Field? = null
     private val MAPBOX_NAVIGATION_NOTIFICATION_PACKAGE_NAME =
@@ -214,7 +215,7 @@ constructor(
         fasterRouteController = FasterRouteController(
             directionsSession,
             tripSession,
-            routingOptionsProvider.provideFasterRouteRefreshAdapter(),
+            MapboxRouteOptionsProvider(),
             logger
         )
         routeRefreshController = RouteRefreshController(directionsSession, tripSession, logger)
@@ -222,6 +223,8 @@ constructor(
 
         arrivalProgressObserver = ArrivalProgressObserver(tripSession)
         attachArrivalController()
+
+        routeOptionsProviderOffRoute = MapboxRouteOptionsProvider()
     }
 
     /**
@@ -545,6 +548,16 @@ constructor(
     }
 
     /**
+     * Set custom [RouteOptionsProvider] for *Off Route* events.
+     * By default uses [MapboxRouteOptionsProvider].
+     *
+     * @see [OffRouteObserver]
+     */
+    fun setRouteOptionsProviderOnOffRoute(routeOptionsProvider: RouteOptionsProvider) {
+        this.routeOptionsProviderOffRoute = routeOptionsProvider
+    }
+
+    /**
      * Register a [NavigationSessionStateObserver] to be notified of the various Session states. Not publicly available
      */
     internal fun registerNavigationSessionObserver(navigationSessionStateObserver: NavigationSessionStateObserver) {
@@ -577,12 +590,14 @@ constructor(
     }
 
     private fun reroute() {
-        val optionsRebuilt = routingOptionsProvider.provideOffRouteRefreshAdapter().newRouteOptions(
+        routeOptionsProviderOffRoute.newRouteOptions(
             directionsSession.getRouteOptions(),
             tripSession.getRouteProgress(),
             tripSession.getEnhancedLocation()
-        ) ?: return
-        directionsSession.requestRoutes(optionsRebuilt, null)
+        )
+            ?.let { routeOptions ->
+                directionsSession.requestRoutes(routeOptions)
+            }
     }
 
     private fun obtainUserAgent(isFromNavigationUi: Boolean): String {

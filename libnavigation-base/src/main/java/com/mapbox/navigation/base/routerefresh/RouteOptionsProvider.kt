@@ -6,11 +6,11 @@ import com.mapbox.navigation.base.options.NavigationOptions
 import com.mapbox.navigation.base.trip.model.RouteProgress
 
 /**
- * Adapter is used for *Reroute* and *Faster Route* flow.
+ * Provider is used for *Reroute* and *Faster Route* flow.
  *
- * *Reroute* adapter might be overwritten via [NavigationOptions].
+ * *Reroute* provider might be overwritten via `MapboxNavigation.setRouteOptionsProviderOnOffRoute`.
  */
-interface RouteRefreshAdapter {
+interface RouteOptionsProvider {
 
     /**
      * Provide a new instance *RouteOptions* based on initial *RouteOptions*, *RouteProgress* and

@@ -13,11 +13,11 @@ import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Test
 
-class MapboxRouteRefreshAdapterTest {
+class MapboxRouteOptionsProviderTest {
 
     private val accessToken = "pk.1234pplffd"
 
-    private lateinit var routeRefreshAdapter: MapboxRouteRefreshAdapter
+    private lateinit var routeRefreshAdapter: MapboxRouteOptionsProvider
     private lateinit var location: Location
 
     companion object {
@@ -26,7 +26,7 @@ class MapboxRouteRefreshAdapterTest {
 
     @Before
     fun setup() {
-        routeRefreshAdapter = MapboxRouteRefreshAdapter()
+        routeRefreshAdapter = MapboxRouteOptionsProvider()
 
         mockLocation()
     }
@@ -43,7 +43,7 @@ class MapboxRouteRefreshAdapterTest {
         val expectedBearings = listOf(
             listOf(
                 DEFAULT_REROUTE_BEARING_ANGLE.toDouble(),
-                MapboxRouteRefreshAdapter.DEFAULT_REROUTE_BEARING_TOLERANCE
+                MapboxRouteOptionsProvider.DEFAULT_REROUTE_BEARING_TOLERANCE
             ),
             null,
             null,
