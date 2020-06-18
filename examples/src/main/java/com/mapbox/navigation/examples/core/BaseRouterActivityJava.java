@@ -141,7 +141,7 @@ public abstract class BaseRouterActivityJava extends AppCompatActivity
   }
 
   private void newOrigin() {
-    if (mapboxMap != null) {
+    if (mapboxMap != null && mapboxMap.getStyle() != null) {
       clearMap();
       LatLng latLng = Utils.getRandomLatLng(new double[] { -77.1825, 38.7825, -76.9790, 39.0157 });
       origin = Point.fromLngLat(latLng.getLongitude(), latLng.getLatitude());
