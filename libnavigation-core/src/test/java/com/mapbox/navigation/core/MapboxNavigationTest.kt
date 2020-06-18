@@ -219,10 +219,10 @@ class MapboxNavigationTest {
     }
 
     @Test
-    fun onDestroySetsRouteToNullInTripSession() {
+    fun onDestroySetsRouteToEmptyInTripSession() {
         mapboxNavigation.onDestroy()
 
-        verify(exactly = 1) { tripSession.route = null }
+        verify(exactly = 1) { tripSession.emptyRoute() }
     }
 
     @Test
@@ -391,7 +391,7 @@ class MapboxNavigationTest {
         verify { directionsSession.registerRoutesObserver(capture(routeObserversSlot)) }
         routeObserversSlot[0].onRoutesChanged(routes)
 
-        verify { tripSession.route = null }
+        verify { tripSession.emptyRoute() }
     }
 
     private fun mockLocation() {
@@ -427,6 +427,7 @@ class MapboxNavigationTest {
                 logger = logger
             )
         } returns tripSession
+        every { tripSession.emptyRoute() } returns DirectionsRoute.builder().build()
         every { tripSession.getEnhancedLocation() } returns location
         every { tripSession.getRouteProgress() } returns routeProgress
         every { tripSession.getRawLocation() } returns location

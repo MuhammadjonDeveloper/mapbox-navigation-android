@@ -36,7 +36,7 @@ internal class RouteRefreshController(
     fun start(): Job {
         stop()
         return routerRefreshTimer.startTimer {
-            val route = tripSession.route?.takeIf { supportsRefresh(it) }
+            val route = tripSession.route.takeIf { it != tripSession.emptyRoute() && supportsRefresh(it) }
             route?.let {
                 val legIndex = tripSession.getRouteProgress()?.currentLegProgress?.legIndex ?: 0
                 directionsSession.requestRouteRefresh(

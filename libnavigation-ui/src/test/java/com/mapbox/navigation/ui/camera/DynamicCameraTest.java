@@ -241,7 +241,7 @@ public class DynamicCameraTest extends BaseTest {
   }
 
   private List<Point> generateRouteCoordinates(DirectionsRoute route) {
-    if (route == null) {
+    if (route.equals(DirectionsRoute.builder().build())) {
       return Collections.emptyList();
     }
     LineString lineString = LineString.fromPolyline(route.geometry(), Constants.PRECISION_6);

@@ -74,7 +74,7 @@ class MapboxTripSession(
         private const val STATUS_POLLING_INTERVAL = 1000L
     }
 
-    override var route: DirectionsRoute? = null
+    override var route: DirectionsRoute = emptyRoute()
         set(value) {
             field = value
             ioJobController.scope.launch {

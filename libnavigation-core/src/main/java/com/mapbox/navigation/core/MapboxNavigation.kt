@@ -320,7 +320,7 @@ constructor(
         tripSession.unregisterAllStateObservers()
         tripSession.unregisterAllBannerInstructionsObservers()
         tripSession.unregisterAllVoiceInstructionsObservers()
-        tripSession.route = null
+        tripSession.route = tripSession.emptyRoute()
 
         // TODO replace this with a destroy when nav-native has a destructor
         navigator.create(navigationOptions.deviceProfile, logger)
@@ -559,7 +559,7 @@ constructor(
             if (routes.isNotEmpty()) {
                 tripSession.route = routes[0]
             } else {
-                tripSession.route = null
+                tripSession.route = tripSession.emptyRoute()
             }
         }
     }

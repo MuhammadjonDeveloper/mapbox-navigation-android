@@ -14,6 +14,7 @@ import android.text.format.DateFormat
 import android.widget.RemoteViews
 import com.mapbox.api.directions.v5.models.BannerInstructions
 import com.mapbox.api.directions.v5.models.BannerText
+import com.mapbox.api.directions.v5.models.DirectionsRoute
 import com.mapbox.navigation.base.formatter.DistanceFormatter
 import com.mapbox.navigation.base.options.NavigationOptions
 import com.mapbox.navigation.base.trip.model.RouteLegProgress
@@ -330,7 +331,7 @@ class MapboxTripNotificationTest {
     @Test
     fun whenFreeDrive() {
         val routeProgress = mockk<RouteProgress>(relaxed = true)
-        every { routeProgress.route } returns null
+        every { routeProgress.route } returns DirectionsRoute.builder().build()
         mockUpdateNotificationAndroidInteractions()
 
         notification.onTripSessionStarted()

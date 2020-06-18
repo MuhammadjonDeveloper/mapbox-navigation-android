@@ -38,7 +38,7 @@ import com.mapbox.geojson.Point
  * @param remainingWaypoints [Int] number of waypoints remaining on the current route.
  */
 data class RouteProgress(
-    val route: DirectionsRoute?,
+    val route: DirectionsRoute,
     val routeGeometryWithBuffer: Geometry?,
     val bannerInstructions: BannerInstructions?,
     val voiceInstructions: VoiceInstructions?,
@@ -56,7 +56,7 @@ data class RouteProgress(
      * Builder for [RouteProgress]
      */
     class Builder {
-        private var directionsRoute: DirectionsRoute? = null
+        private var directionsRoute: DirectionsRoute = DirectionsRoute.builder().build()
         private var routeGeometryWithBuffer: Geometry? = null
         private var bannerInstructions: BannerInstructions? = null
         private var voiceInstructions: VoiceInstructions? = null

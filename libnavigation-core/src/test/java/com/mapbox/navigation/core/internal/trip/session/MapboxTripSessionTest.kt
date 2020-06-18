@@ -420,10 +420,10 @@ class MapboxTripSessionTest {
     }
 
     @Test
-    fun setRoute_nullable() {
-        tripSession.route = null
+    fun setRoute_empty() {
+        tripSession.route = tripSession.emptyRoute()
 
-        coVerify { navigator.setRoute(null) }
+        coVerify { navigator.setRoute(eq(tripSession.emptyRoute())) }
     }
 
     @Test

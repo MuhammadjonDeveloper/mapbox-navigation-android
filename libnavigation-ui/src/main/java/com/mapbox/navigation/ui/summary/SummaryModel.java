@@ -4,6 +4,7 @@ import android.content.Context;
 import android.text.SpannableStringBuilder;
 import android.text.format.DateFormat;
 
+import com.mapbox.api.directions.v5.models.DirectionsRoute;
 import com.mapbox.navigation.base.internal.extensions.LocaleEx;
 import com.mapbox.navigation.base.formatter.DistanceFormatter;
 import com.mapbox.navigation.base.trip.model.RouteProgress;
@@ -23,9 +24,10 @@ public class SummaryModel {
 
   public SummaryModel(final Context context, final DistanceFormatter distanceFormatter, final RouteProgress progress,
                       final @TimeFormat.Type int timeFormatType) {
-    final Locale locale = progress.getRoute() == null ? null :
+    final Locale locale = progress.getRoute().equals(DirectionsRoute.builder().build()) ? null :
       LocaleEx.getLocaleDirectionsRoute(progress.getRoute(), context);
     distanceRemaining = distanceFormatter.formatDistance(progress.getDistanceRemaining()).toString();
+    // TODO Method invocation 'getDurationRemaining' may produce 'NullPointerException'
     final double legDurationRemaining = progress.getCurrentLegProgress().getDurationRemaining();
     timeRemaining = TimeFormatter.formatTimeRemaining(context, legDurationRemaining, locale);
     final Calendar time = Calendar.getInstance();

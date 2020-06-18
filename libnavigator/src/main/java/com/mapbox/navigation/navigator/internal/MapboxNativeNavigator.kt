@@ -80,7 +80,7 @@ interface MapboxNativeNavigator {
      * Otherwise, it returns a invalid route state.
      */
     suspend fun setRoute(
-        route: DirectionsRoute?,
+        route: DirectionsRoute,
         legIndex: Int = INDEX_FIRST_LEG
     ): NavigationStatus
 

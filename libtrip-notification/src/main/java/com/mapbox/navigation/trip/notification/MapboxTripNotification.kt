@@ -26,6 +26,7 @@ import com.mapbox.annotation.module.MapboxModule
 import com.mapbox.annotation.module.MapboxModuleType
 import com.mapbox.api.directions.v5.models.BannerInstructions
 import com.mapbox.api.directions.v5.models.BannerText
+import com.mapbox.api.directions.v5.models.DirectionsRoute
 import com.mapbox.api.directions.v5.models.ManeuverModifier
 import com.mapbox.api.directions.v5.models.StepManeuver
 import com.mapbox.api.directions.v5.models.StepManeuver.StepManeuverType
@@ -297,7 +298,7 @@ class MapboxTripNotification constructor(
     }
 
     private fun updateNotificationViews(routeProgress: RouteProgress) {
-        routeProgress.route?.let {
+        if (routeProgress.route != DirectionsRoute.builder().build()) {
             updateInstructionText(routeProgress.bannerInstructions)
             updateDistanceText(routeProgress)
             generateArrivalTime(routeProgress)?.let { formattedTime ->
@@ -312,7 +313,9 @@ class MapboxTripNotification constructor(
                 }
             }
             setFreeDriveMode(false)
-        } ?: setFreeDriveMode(true)
+        } else {
+            setFreeDriveMode(true)
+        }
     }
 
     private fun setFreeDriveMode(isFreeDriveMode: Boolean) {

@@ -50,7 +50,7 @@ object MapboxNativeNavigatorImpl : MapboxNativeNavigator {
     private const val PRIMARY_ROUTE_INDEX = 0
 
     private var navigator: Navigator? = null
-    private var route: DirectionsRoute? = null
+    private var route: DirectionsRoute = emptyRoute()
     private var routeBufferGeoJson: Geometry? = null
     private val mutex = Mutex()
 
@@ -62,7 +62,7 @@ object MapboxNativeNavigatorImpl : MapboxNativeNavigator {
      */
     override fun create(deviceProfile: DeviceProfile, logger: Logger?): MapboxNativeNavigator {
         navigator = NavigatorLoader.createNavigator(deviceProfile, logger)
-        route = null
+        route = emptyRoute()
         routeBufferGeoJson = null
         return this
     }
@@ -131,12 +131,12 @@ object MapboxNativeNavigatorImpl : MapboxNativeNavigator {
      * Otherwise, it returns a invalid route state.
      */
     override suspend fun setRoute(
-        route: DirectionsRoute?,
+        route: DirectionsRoute,
         legIndex: Int
     ): NavigationStatus {
         mutex.withLock {
             MapboxNativeNavigatorImpl.route = route
-            val result = navigator!!.setRoute(route?.toJson() ?: "{}", PRIMARY_ROUTE_INDEX, legIndex)
+            val result = navigator!!.setRoute(route.toJson(), PRIMARY_ROUTE_INDEX, legIndex)
             navigator!!.getRouteBufferGeoJson(GRID_SIZE, BUFFER_DILATION)?.also {
                 routeBufferGeoJson = GeometryGeoJson.fromJson(it)
             }
@@ -314,6 +314,8 @@ object MapboxNativeNavigatorImpl : MapboxNativeNavigator {
     override fun getVoiceInstruction(index: Int): VoiceInstruction? =
         navigator!!.getVoiceInstruction(index)
 
+    private fun emptyRoute(): DirectionsRoute = DirectionsRoute.builder().build()
+
     /**
      * Builds [RouteProgress] object based on [NavigationStatus] returned by [Navigator]
      */
@@ -324,7 +326,7 @@ object MapboxNativeNavigatorImpl : MapboxNativeNavigator {
         val legProgressBuilder = RouteLegProgress.Builder()
         val stepProgressBuilder = RouteStepProgress.Builder()
 
-        ifNonNull(route?.legs()) { legs ->
+        ifNonNull(route.legs()) { legs ->
             var currentLeg: RouteLeg? = null
             if (legIndex < legs.size) {
                 currentLeg = legs[legIndex]
@@ -431,10 +433,7 @@ object MapboxNativeNavigatorImpl : MapboxNativeNavigator {
         routeProgressBuilder.routeGeometryWithBuffer(routeBufferGeoJson)
 
         routeProgressBuilder.voiceInstructions(voiceInstruction?.mapToDirectionsApi())
-
-        ifNonNull(route) {
-            routeProgressBuilder.route(it)
-        }
+        routeProgressBuilder.route(route)
 
         return routeProgressBuilder.build()
     }

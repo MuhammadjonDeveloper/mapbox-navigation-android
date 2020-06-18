@@ -14,7 +14,9 @@ internal interface TripSession {
     val tripService: TripService
     val locationEngine: LocationEngine
     val locationEngineRequest: LocationEngineRequest
-    var route: DirectionsRoute?
+    var route: DirectionsRoute
+
+    fun emptyRoute(): DirectionsRoute = DirectionsRoute.builder().build()
 
     fun getRawLocation(): Location?
     fun getEnhancedLocation(): Location?
